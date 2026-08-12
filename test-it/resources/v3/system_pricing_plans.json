@@ -1,0 +1,163 @@
+{
+  "last_updated": "2026-08-12T14:45:16.4678823+02:00",
+  "ttl": 300,
+  "version": "3.0",
+  "data": {
+    "plans": [
+      {
+        "name": [
+          {
+            "text": "Avec Abonnement - M",
+            "language": "fr"
+          }
+        ],
+        "description": [
+          {
+            "text": "Détails: de 0km à 101km chaque 1km coûte 0.42€ puis de 101km à 100001km chaque 1km coûte 0.22€ et de 0min à 451min chaque 15min coûte 0.875€ puis de 451min à 1441min coûte 0.750€ puis de 1441min à 1891min chaque 15min coûte 0.875€ puis de 1891min à 2881min coûte 0.750€ puis de 2881min à 3331min chaque 15min coûte 0.875€ puis de 3331min à 4321min coûte 0.750€ puis de 4321min à 4771min chaque 15min coûte 0.875€ puis de 4771min à 5761min coûte 0.750€ puis de 5761min à 6211min chaque 15min coûte 0.875€ puis de 6211min à 7201min coûte 0.750€ puis de 7201min à 7651min chaque 15min coûte 0.875€ puis de 7651min à 8641min coûte 0.750€ puis de 8641min à 9091min chaque 15min coûte 0.875€ puis de 9091min à 10081min coûte 0.750€ puis de 10081min à 10531min chaque 15min coûte 0.875€ puis de 10531min à 11521min coûte 0.750€ puis de 11521min à 11971min chaque 15min coûte 0.875€ puis de 11971min à 12961min coûte 0.750€ puis de 12961min à 13411min chaque 15min coûte 0.875€ puis de 13411min à 14401min coûte 0.750€.",
+            "language": "fr"
+          }
+        ],
+        "plan_id": "321_57",
+        "currency": "EUR",
+        "price": 0,
+        "is_taxable": false,
+        "per_km_pricing": [
+          {
+            "start": 0,
+            "end": 101,
+            "rate": 0.42,
+            "interval": 1
+          },
+          {
+            "start": 101,
+            "end": 100001,
+            "rate": 0.22,
+            "interval": 1
+          }
+        ],
+        "per_min_pricing": [
+          {
+            "start": 0,
+            "end": 451,
+            "rate": 0.875,
+            "interval": 15
+          },
+          {
+            "start": 451,
+            "end": 1441,
+            "rate": 0.75,
+            "interval": 0
+          },
+          {
+            "start": 1441,
+            "end": 1891,
+            "rate": 0.875,
+            "interval": 15
+          },
+          {
+            "start": 1891,
+            "end": 2881,
+            "rate": 0.75,
+            "interval": 0
+          },
+          {
+            "start": 2881,
+            "end": 3331,
+            "rate": 0.875,
+            "interval": 15
+          },
+          {
+            "start": 3331,
+            "end": 4321,
+            "rate": 0.75,
+            "interval": 0
+          },
+          {
+            "start": 4321,
+            "end": 4771,
+            "rate": 0.875,
+            "interval": 15
+          },
+          {
+            "start": 4771,
+            "end": 5761,
+            "rate": 0.75,
+            "interval": 0
+          },
+          {
+            "start": 5761,
+            "end": 6211,
+            "rate": 0.875,
+            "interval": 15
+          },
+          {
+            "start": 6211,
+            "end": 7201,
+            "rate": 0.75,
+            "interval": 0
+          },
+          {
+            "start": 7201,
+            "end": 7651,
+            "rate": 0.875,
+            "interval": 15
+          },
+          {
+            "start": 7651,
+            "end": 8641,
+            "rate": 0.75,
+            "interval": 0
+          },
+          {
+            "start": 8641,
+            "end": 9091,
+            "rate": 0.875,
+            "interval": 15
+          },
+          {
+            "start": 9091,
+            "end": 10081,
+            "rate": 0.75,
+            "interval": 0
+          },
+          {
+            "start": 10081,
+            "end": 10531,
+            "rate": 0.875,
+            "interval": 15
+          },
+          {
+            "start": 10531,
+            "end": 11521,
+            "rate": 0.75,
+            "interval": 0
+          },
+          {
+            "start": 11521,
+            "end": 11971,
+            "rate": 0.875,
+            "interval": 15
+          },
+          {
+            "start": 11971,
+            "end": 12961,
+            "rate": 0.75,
+            "interval": 0
+          },
+          {
+            "start": 12961,
+            "end": 13411,
+            "rate": 0.875,
+            "interval": 15
+          },
+          {
+            "start": 13411,
+            "end": 14401,
+            "rate": 0.75,
+            "interval": 0
+          }
+        ]
+      }
+    ]
+  }
+}

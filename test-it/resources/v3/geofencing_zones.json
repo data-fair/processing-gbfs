@@ -1,0 +1,87 @@
+{
+  "last_updated": "2026-08-12T14:44:10+02:00",
+  "ttl": 300,
+  "version": "3.0",
+  "data": {
+    "geofencing_zones": {
+      "type": "FeatureCollection",
+      "features": [
+        {
+          "type": "Feature",
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0.33,
+                    46.58
+                  ],
+                  [
+                    0.35,
+                    46.58
+                  ],
+                  [
+                    0.35,
+                    46.6
+                  ],
+                  [
+                    0.33,
+                    46.6
+                  ],
+                  [
+                    0.33,
+                    46.58
+                  ]
+                ]
+              ]
+            ]
+          },
+          "properties": {
+            "name": [
+              {
+                "text": "Hypercentre",
+                "language": "fr"
+              }
+            ],
+            "rules": [
+              {
+                "vehicle_type_ids": [
+                  "1"
+                ],
+                "ride_start_allowed": false,
+                "ride_end_allowed": false,
+                "ride_through_allowed": true,
+                "maximum_speed_kph": 20
+              },
+              {
+                "ride_start_allowed": true,
+                "ride_end_allowed": true,
+                "ride_through_allowed": true
+              }
+            ]
+          }
+        },
+        {
+          "type": "Feature",
+          "geometry": null,
+          "properties": {
+            "name": [
+              {
+                "text": "Zone sans geometrie",
+                "language": "fr"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "global_rules": [
+      {
+        "ride_start_allowed": true,
+        "ride_end_allowed": true,
+        "ride_through_allowed": true
+      }
+    ]
+  }
+}

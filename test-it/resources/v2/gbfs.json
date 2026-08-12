@@ -1,0 +1,21 @@
+{
+  "last_updated": 1660312061,
+  "ttl": 60,
+  "version": "2.2",
+  "data": {
+    "fr": {
+      "feeds": [
+        { "name": "system_information", "url": "https://example.org/gbfs/v2/system_information.json" },
+        { "name": "station_information", "url": "https://example.org/gbfs/v2/station_information.json" },
+        { "name": "station_status", "url": "https://example.org/gbfs/v2/station_status.json" },
+        { "name": "free_bike_status", "url": "https://example.org/gbfs/v2/free_bike_status.json" },
+        { "name": "vehicle_types", "url": "https://example.org/gbfs/v2/vehicle_types.json" }
+      ]
+    },
+    "en": {
+      "feeds": [
+        { "name": "system_information", "url": "https://example.org/gbfs/v2/en/system_information.json" }
+      ]
+    }
+  }
+}

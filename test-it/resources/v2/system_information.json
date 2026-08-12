@@ -1,0 +1,16 @@
+{
+  "last_updated": 1660312061,
+  "ttl": 60,
+  "version": "2.2",
+  "data": {
+    "system_id": "velo_exemple",
+    "language": "fr",
+    "name": "Vélos d'Exemple",
+    "operator": "Régie d'Exemple",
+    "url": "https://example.org",
+    "phone_number": "+33100000000",
+    "email": "contact@example.org",
+    "timezone": "Europe/Paris",
+    "license_url": "https://example.org/licence"
+  }
+}

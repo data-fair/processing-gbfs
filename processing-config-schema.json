@@ -1,0 +1,164 @@
+{
+  "type": "object",
+  "layout": "tabs",
+  "required": ["datasetMode", "url"],
+  "allOf": [
+    {
+      "title": "Jeux de données",
+      "default": {
+        "datasetMode": "create"
+      },
+      "oneOf": [
+        {
+          "title": "Créer les jeux de données",
+          "required": ["datasetTitle", "resources"],
+          "properties": {
+            "datasetMode": {
+              "type": "string",
+              "const": "create",
+              "title": "Action"
+            },
+            "datasetTitle": {
+              "type": "string",
+              "title": "Titre de base des jeux de données",
+              "description": "Chaque jeu créé porte ce titre suivi de son rôle, par exemple « Citiz Grand Poitiers - stations »."
+            },
+            "resources": {
+              "type": "object",
+              "title": "Jeux de données à produire",
+              "description": "Seuls les flux cochés sont lus. Un flux absent du service GBFS est ignoré avec un avertissement.",
+              "properties": {
+                "system": {
+                  "type": "boolean",
+                  "title": "Métadonnées",
+                  "description": "Jeu sans données, porteur des fichiers JSON du service en pièces jointes.",
+                  "default": true
+                },
+                "stations": {
+                  "type": "boolean",
+                  "title": "Stations",
+                  "description": "Un point par station, avec sa disponibilité à l'instant de l'exécution.",
+                  "default": true
+                },
+                "vehicles": {
+                  "type": "boolean",
+                  "title": "Véhicules",
+                  "description": "Un point par véhicule disponible, avec son type et son état.",
+                  "default": true
+                },
+                "vehicle-types": {
+                  "type": "boolean",
+                  "title": "Types de véhicules",
+                  "description": "Catalogue des modèles proposés par le service.",
+                  "default": true
+                },
+                "pricing-plans": {
+                  "type": "boolean",
+                  "title": "Tarifs",
+                  "description": "Grille tarifaire déclarée par le service.",
+                  "default": false
+                },
+                "geofencing-zones": {
+                  "type": "boolean",
+                  "title": "Zones de circulation",
+                  "description": "Zones où la circulation, le départ ou l'arrivée sont restreints.",
+                  "default": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "title": "Mettre à jour les jeux de données",
+          "required": ["datasets"],
+          "properties": {
+            "datasetMode": {
+              "type": "string",
+              "const": "update"
+            },
+            "datasets": {
+              "type": "array",
+              "title": "Jeux de données à mettre à jour",
+              "description": "Un jeu par rôle. Retirer une ligne cesse de produire la donnée correspondante.",
+              "layout": {
+                "comp": "list",
+                "listEditMode": "inline",
+                "messages": {
+                  "addItem": "Ajouter un jeu de données"
+                }
+              },
+              "items": {
+                "type": "object",
+                "required": ["key", "id"],
+                "properties": {
+                  "key": {
+                    "type": "string",
+                    "title": "Rôle",
+                    "oneOf": [
+                      { "const": "system", "title": "Métadonnées" },
+                      { "const": "stations", "title": "Stations" },
+                      { "const": "vehicles", "title": "Véhicules" },
+                      { "const": "vehicle-types", "title": "Types de véhicules" },
+                      { "const": "pricing-plans", "title": "Tarifs" },
+                      { "const": "geofencing-zones", "title": "Zones de circulation" }
+                    ]
+                  },
+                  "id": {
+                    "type": "string",
+                    "title": "Identifiant"
+                  },
+                  "title": {
+                    "type": "string",
+                    "title": "Titre"
+                  }
+                },
+                "layout": {
+                  "getItems": {
+                    "url": "${context.dataFairUrl}/api/v1/datasets?select=id,title&${context.ownerFilter}&raw=true",
+                    "qSearchParam": "q",
+                    "itemsResults": "data.results",
+                    "itemTitle": "item.title",
+                    "itemKey": "item.id"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "title": "Paramètres",
+      "required": ["url"],
+      "properties": {
+        "url": {
+          "type": "string",
+          "title": "URL du fichier gbfs.json",
+          "description": "Fichier de découverte du service GBFS, en version 2.x ou 3.0. Par exemple https://backend.citiz.fr/public/provider/9/gbfs/v3.0/gbfs.json"
+        },
+        "language": {
+          "type": "string",
+          "title": "Langue des libellés",
+          "description": "Code de langue à retenir quand le service publie ses libellés en plusieurs langues. La première langue disponible est utilisée à défaut.",
+          "default": "fr"
+        }
+      }
+    },
+    {
+      "title": "Concepts",
+      "description": "À renseigner uniquement si votre organisation dispose d'un vocabulaire privé. Laissés vides, seuls les concepts du vocabulaire standard sont posés.",
+      "properties": {
+        "stationConcept": {
+          "type": "string",
+          "title": "Concept « station »",
+          "description": "Posé sur station_id, dans les stations comme dans les véhicules. C'est cette annotation croisée qui rend les deux jeux joignables."
+        },
+        "vehicleTypeConcept": {
+          "type": "string",
+          "title": "Concept « type de véhicule »",
+          "description": "Posé sur vehicle_type_id, dans les véhicules comme dans les types de véhicules."
+        }
+      }
+    }
+  ]
+}

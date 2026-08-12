@@ -1,0 +1,25 @@
+{
+  "last_updated": 1660312061,
+  "ttl": 60,
+  "version": "2.2",
+  "data": {
+    "stations": [
+      {
+        "station_id": "A1",
+        "name": "Place du Marché",
+        "address": "1 place du Marché",
+        "lat": 46.58,
+        "lon": 0.34,
+        "capacity": 12,
+        "rental_methods": ["key", "creditcard"]
+      },
+      {
+        "station_id": "A2",
+        "name": "Gare",
+        "lat": 46.59,
+        "lon": 0.33,
+        "capacity": 20
+      }
+    ]
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "last_updated": 1660312061,
+  "ttl": 60,
+  "version": "2.2",
+  "data": {
+    "bikes": [
+      {
+        "bike_id": "B-001",
+        "lat": 46.581,
+        "lon": 0.341,
+        "is_reserved": 0,
+        "is_disabled": 0,
+        "vehicle_type_id": "vae",
+        "current_range_meters": 45000,
+        "last_reported": 1660312050
+      },
+      {
+        "bike_id": "B-002",
+        "lat": 46.582,
+        "lon": 0.342,
+        "is_reserved": 1,
+        "is_disabled": 0,
+        "vehicle_type_id": "vae"
+      }
+    ]
+  }
+}

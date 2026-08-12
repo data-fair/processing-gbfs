@@ -1,0 +1,63 @@
+{
+  "last_updated": "2026-08-12T14:45:36.3274542+02:00",
+  "ttl": 300,
+  "version": "3.0",
+  "data": {
+    "stations": [
+      {
+        "station_id": "547",
+        "name": [
+          {
+            "text": " BUXEROLLES MAIRIE",
+            "language": "fr"
+          }
+        ],
+        "lat": 46.598487854003906,
+        "lon": 0.35229700803756714,
+        "address": "10 rue Maurice Ravel 86180 BUXEROLLES",
+        "parking_type": "street_parking",
+        "capacity": 2,
+        "is_virtual_station": false
+      },
+      {
+        "station_id": "548",
+        "name": [
+          {
+            "text": "GARE TOUMAÏ",
+            "language": "fr"
+          }
+        ],
+        "lat": 46.58420944213867,
+        "lon": 0.33599498867988586,
+        "address": "Boulevard du Grand cerf 86000 POITIERS",
+        "parking_type": "street_parking",
+        "capacity": 3,
+        "is_virtual_station": false
+      },
+      {
+        "station_id": "999",
+        "name": [
+          {
+            "text": "STATION SANS ETAT",
+            "language": "fr"
+          }
+        ],
+        "lat": 46.58,
+        "lon": 0.34,
+        "capacity": 1,
+        "parking_type": "parking_lot",
+        "is_virtual_station": false
+      },
+      {
+        "name": [
+          {
+            "text": "SANS IDENTIFIANT",
+            "language": "fr"
+          }
+        ],
+        "lat": 46.5,
+        "lon": 0.3
+      }
+    ]
+  }
+}

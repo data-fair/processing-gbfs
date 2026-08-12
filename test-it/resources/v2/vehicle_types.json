@@ -1,0 +1,16 @@
+{
+  "last_updated": 1660312061,
+  "ttl": 60,
+  "version": "2.2",
+  "data": {
+    "vehicle_types": [
+      {
+        "vehicle_type_id": "vae",
+        "form_factor": "bicycle",
+        "propulsion_type": "electric_assist",
+        "max_range_meters": 60000,
+        "name": "Vélo à assistance électrique"
+      }
+    ]
+  }
+}

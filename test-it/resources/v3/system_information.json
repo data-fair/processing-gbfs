@@ -1,0 +1,51 @@
+{
+  "last_updated": "2026-08-12T14:44:11.3169102+02:00",
+  "ttl": 300,
+  "version": "3.0",
+  "data": {
+    "system_id": "citiz_grand_poitiers",
+    "languages": [
+      "fr"
+    ],
+    "name": [
+      {
+        "text": "Citiz Grand Poitiers",
+        "language": "fr"
+      }
+    ],
+    "short_name": [
+      {
+        "text": "Citiz Grand Poitiers",
+        "language": "fr"
+      }
+    ],
+    "operator": [
+      {
+        "text": "Régie des Transports Poitevins (RTP)",
+        "language": "fr"
+      }
+    ],
+    "opening_hours": "Mo-Su 00:00-24:00",
+    "url": "https://grandpoitiers.citiz.coop/",
+    "phone_number": "+33549446688",
+    "email": "grandpoitiers@citiz.fr",
+    "feed_contact_email": "grandpoitiers@citiz.fr",
+    "timezone": "Europe/Paris",
+    "license_id": "CC0-1.0",
+    "manifest_url": "https://backend.citiz.fr/public/gbfs/manifest.json",
+    "terms_url": [
+      {
+        "text": "https://backend.citiz.fr/public/cgl/cgl_reseau_citiz_20260101.pdf",
+        "language": "fr"
+      }
+    ],
+    "terms_last_updated": "2026-01-01",
+    "privacy_url": [
+      {
+        "text": "https://grandpoitiers.citiz.coop/mentions-legales-otolis",
+        "language": "fr"
+      }
+    ],
+    "privacy_last_updated": "2024-01-01"
+  }
+}

@@ -1,0 +1,134 @@
+{
+  "last_updated": "2026-08-12T14:44:11.5199941+02:00",
+  "ttl": 300,
+  "version": "3.0",
+  "data": {
+    "vehicle_types": [
+      {
+        "vehicle_type_id": "1",
+        "form_factor": "car",
+        "propulsion_type": "combustion",
+        "max_range_meters": 0,
+        "name": [
+          {
+            "text": "Renault Twingo",
+            "language": "fr"
+          }
+        ],
+        "default_pricing_plan_id": "321_60",
+        "model": [
+          {
+            "text": "Twingo",
+            "language": "fr"
+          }
+        ],
+        "make": [
+          {
+            "text": "Renault",
+            "language": "fr"
+          }
+        ]
+      },
+      {
+        "vehicle_type_id": "11",
+        "form_factor": "car",
+        "propulsion_type": "hybrid",
+        "max_range_meters": 0,
+        "name": [
+          {
+            "text": "Toyota Yaris",
+            "language": "fr"
+          }
+        ],
+        "default_pricing_plan_id": "321_57",
+        "model": [
+          {
+            "text": "Yaris",
+            "language": "fr"
+          }
+        ],
+        "make": [
+          {
+            "text": "Toyota",
+            "language": "fr"
+          }
+        ]
+      },
+      {
+        "vehicle_type_id": "16",
+        "form_factor": "car",
+        "propulsion_type": "hybrid",
+        "max_range_meters": 0,
+        "name": [
+          {
+            "text": "Dacia Jogger",
+            "language": "fr"
+          }
+        ],
+        "default_pricing_plan_id": "321_59",
+        "model": [
+          {
+            "text": "Jogger",
+            "language": "fr"
+          }
+        ],
+        "make": [
+          {
+            "text": "Dacia",
+            "language": "fr"
+          }
+        ]
+      },
+      {
+        "vehicle_type_id": "31",
+        "form_factor": "car",
+        "propulsion_type": "hybrid",
+        "max_range_meters": 0,
+        "name": [
+          {
+            "text": "Renault Clio Hybride",
+            "language": "fr"
+          }
+        ],
+        "default_pricing_plan_id": "321_57",
+        "model": [
+          {
+            "text": "Clio Hybride",
+            "language": "fr"
+          }
+        ],
+        "make": [
+          {
+            "text": "Renault",
+            "language": "fr"
+          }
+        ]
+      },
+      {
+        "vehicle_type_id": "84",
+        "form_factor": "car",
+        "propulsion_type": "combustion",
+        "max_range_meters": 0,
+        "name": [
+          {
+            "text": "Dacia Sandero",
+            "language": "fr"
+          }
+        ],
+        "default_pricing_plan_id": "321_57",
+        "model": [
+          {
+            "text": "Sandero",
+            "language": "fr"
+          }
+        ],
+        "make": [
+          {
+            "text": "Dacia",
+            "language": "fr"
+          }
+        ]
+      }
+    ]
+  }
+}

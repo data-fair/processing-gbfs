@@ -1,0 +1,37 @@
+{
+  "last_updated": "2026-08-12T14:47:24.0116413+02:00",
+  "ttl": 300,
+  "version": "3.0",
+  "data": {
+    "vehicles": [
+      {
+        "vehicle_id": "1515",
+        "last_reported": "2026-08-12T13:38:00.2617309+02:00",
+        "lat": 46.57878494262695,
+        "lon": 0.3398270010948181,
+        "is_reserved": true,
+        "is_disabled": true,
+        "vehicle_type_id": "11",
+        "current_range_meters": 300000,
+        "current_fuel_percent": 0.6,
+        "station_id": "1485",
+        "vehicle_equipment": [],
+        "home_station_id": "1485"
+      },
+      {
+        "vehicle_id": "1516",
+        "last_reported": "2026-08-12T14:45:19.1112149+02:00",
+        "lat": 46.59138870239258,
+        "lon": 0.35227999091148376,
+        "is_reserved": false,
+        "is_disabled": true,
+        "vehicle_type_id": "11",
+        "current_range_meters": 300000,
+        "current_fuel_percent": 0.79,
+        "station_id": "1483",
+        "vehicle_equipment": [],
+        "home_station_id": "1483"
+      }
+    ]
+  }
+}
