@@ -144,7 +144,7 @@ export const run = async (context: ProcessingContext<ProcessingConfig>) => {
   }
   throwIfStopped()
 
-  const schemas = buildSchemas({ stationConcept: config.stationConcept, vehicleTypeConcept: config.vehicleTypeConcept })
+  const schemas = buildSchemas()
   const refs: DatasetRef[] = []
 
   if (create) {

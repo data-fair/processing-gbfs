@@ -24,7 +24,7 @@ describe('traitement GBFS', () => {
   it('expose un schéma de configuration', () => {
     assert.equal(processingSchema.type, 'object')
     const tabs = processingSchema.allOf.map((tab: any) => tab.title)
-    assert.deepEqual(tabs, ['Jeux de données', 'Paramètres', 'Concepts'])
+    assert.deepEqual(tabs, ['Jeux de données', 'Paramètres'])
   })
 
   it('déclare les mêmes rôles à la création et à la mise à jour', () => {

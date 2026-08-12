@@ -276,14 +276,14 @@ describe('schémas produits', () => {
     }
   })
 
-  it('applique les concepts du vocabulaire privé', () => {
-    const schemas = buildSchemas({ stationConcept: 'http://exemple.org/station', vehicleTypeConcept: 'http://exemple.org/type' })
-    const stationId = schemas.stations.find(property => property.key === 'station_id')
-    assert.equal(stationId?.['x-refersTo'], 'http://exemple.org/station')
-    const vehicleStation = schemas.vehicles.find(property => property.key === 'station_id')
-    assert.equal(vehicleStation?.['x-refersTo'], 'http://exemple.org/station')
-    // left alone when the user declares no private vocabulary
-    assert.equal(buildSchemas().stations.find(property => property.key === 'station_id')?.['x-refersTo'], undefined)
+  it('ne pose que des concepts du vocabulaire standard', () => {
+    const schemas = buildSchemas()
+    // the join keys are left unannotated: the standard vocabulary has no concept for
+    // them, and one set by hand from a private vocabulary must not be overwritten
+    assert.equal(schemas.stations.find(property => property.key === 'station_id')?.['x-refersTo'], undefined)
+    assert.equal(schemas.vehicles.find(property => property.key === 'vehicle_type_id')?.['x-refersTo'], undefined)
+    assert.equal(schemas.stations.find(property => property.key === 'name')?.['x-refersTo'], 'http://www.w3.org/2000/01/rdf-schema#label')
+    assert.equal(schemas.stations.find(property => property.key === 'lat')?.['x-refersTo'], 'http://schema.org/latitude')
   })
 
   it('ne produit que des lignes plates', async () => {

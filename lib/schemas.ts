@@ -137,19 +137,15 @@ const geometryProperty: SchemaProperty = {
   'x-capabilities': { textAgg: false }
 }
 
-export interface ConceptOverrides {
-  /** URI of a private-vocabulary concept identifying a station, applied to station_id */
-  stationConcept?: string
-  /** URI of a private-vocabulary concept identifying a type of vehicle */
-  vehicleTypeConcept?: string
-}
-
-const withConcept = (property: SchemaProperty, uri?: string): SchemaProperty =>
-  uri ? { ...property, 'x-refersTo': uri } : property
-
-export const buildSchemas = (concepts: ConceptOverrides = {}): Record<DataResourceKey, SchemaProperty[]> => ({
+/**
+ * station_id and vehicle_type_id are what join the produced datasets to each other and
+ * to an organisation's own reference data, but the standard vocabulary has no concept
+ * for either. Annotating them takes a private vocabulary, so it is left to whoever owns
+ * one: refreshSchema never touches x-refersTo, so a concept set by hand survives.
+ */
+export const buildSchemas = (): Record<DataResourceKey, SchemaProperty[]> => ({
   stations: [
-    withConcept(id('station_id', 'Identifiant de la station'), concepts.stationConcept),
+    id('station_id', 'Identifiant de la station'),
     { key: 'name', title: 'Nom de la station', type: 'string', 'x-refersTo': LABEL },
     { key: 'short_name', title: 'Nom court', type: 'string' },
     { key: 'address', title: 'Adresse', type: 'string', 'x-refersTo': ADDRESS },
@@ -179,9 +175,9 @@ export const buildSchemas = (concepts: ConceptOverrides = {}): Record<DataResour
     id('vehicle_id', 'Identifiant du véhicule', 'Réattribué à chaque location par les services qui protègent la vie privée de leurs usagers.'),
     { key: 'lat', title: 'Latitude', type: 'number', 'x-refersTo': LATITUDE },
     { key: 'lon', title: 'Longitude', type: 'number', 'x-refersTo': LONGITUDE },
-    withConcept(id('station_id', 'Station', 'Station où le véhicule est stationné.'), concepts.stationConcept),
+    id('station_id', 'Station', 'Station où le véhicule est stationné.'),
     id('home_station_id', "Station d'attache", 'Station à laquelle le véhicule doit être rendu.'),
-    withConcept(id('vehicle_type_id', 'Identifiant du type de véhicule'), concepts.vehicleTypeConcept),
+    id('vehicle_type_id', 'Identifiant du type de véhicule'),
     { key: 'vehicle_type_name', title: 'Modèle', type: 'string', 'x-refersTo': LABEL },
     formFactor,
     propulsionType,
@@ -199,7 +195,7 @@ export const buildSchemas = (concepts: ConceptOverrides = {}): Record<DataResour
     updatedAt
   ],
   'vehicle-types': [
-    withConcept(id('vehicle_type_id', 'Identifiant du type de véhicule'), concepts.vehicleTypeConcept),
+    id('vehicle_type_id', 'Identifiant du type de véhicule'),
     { key: 'name', title: 'Nom', type: 'string', 'x-refersTo': LABEL },
     formFactor,
     propulsionType,

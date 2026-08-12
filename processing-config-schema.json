@@ -59,6 +59,8 @@
               "layout": {
                 "comp": "list",
                 "listEditMode": "inline",
+                "itemTitle": "({ system: 'Métadonnées', stations: 'Stations', vehicles: 'Véhicules', 'vehicle-types': 'Types de véhicules', 'pricing-plans': 'Tarifs', 'geofencing-zones': 'Zones de circulation' })[item.key] || 'Rôle à choisir'",
+                "itemSubtitle": "item.title || item.id",
                 "messages": {
                   "addItem": "Ajouter un jeu de données"
                 }
@@ -118,22 +120,15 @@
           "description": "Code de langue à retenir quand le service publie ses libellés en plusieurs langues. La première langue disponible est utilisée à défaut.",
           "default": "fr"
         }
-      }
-    },
-    {
-      "title": "Concepts",
-      "description": "À renseigner uniquement si votre organisation dispose d'un vocabulaire privé. Laissés vides, seuls les concepts du vocabulaire standard sont posés.",
-      "properties": {
-        "stationConcept": {
-          "type": "string",
-          "title": "Concept « station »",
-          "description": "Posé sur station_id, dans les stations comme dans les véhicules. C'est cette annotation croisée qui rend les deux jeux joignables."
-        },
-        "vehicleTypeConcept": {
-          "type": "string",
-          "title": "Concept « type de véhicule »",
-          "description": "Posé sur vehicle_type_id, dans les véhicules comme dans les types de véhicules."
-        }
+      },
+      "layout": {
+        "children": [
+          "url",
+          "language",
+          {
+            "markdown": "Les identifiants `station_id` et `vehicle_type_id` relient les jeux produits entre eux, mais n'ont pas d'équivalent dans le vocabulaire standard. Pour croiser ces jeux avec votre référentiel, définissez les concepts correspondants dans les <a href=\"/data-fair/settings\" target=\"_blank\" rel=\"noopener noreferrer\"><strong>paramètres de votre organisation</strong></a>, puis posez-les sur les colonnes concernées. Le traitement ne les écrase jamais."
+          }
+        ]
       }
     }
   ]
