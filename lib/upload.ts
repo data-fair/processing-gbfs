@@ -98,6 +98,7 @@ export const refreshSchema = async (
   const liveSchema: SchemaProperty[] = (live.schema ?? []).filter((property: any) => !property['x-calculated'])
   const liveKeys = new Set(liveSchema.map(property => property.key))
   const wantedByKey = new Map(wanted.map(property => [property.key, property]))
+  const concepts: string[] = []
   let changed = false
 
   const merged: SchemaProperty[] = liveSchema.map((property: any) => {
@@ -112,6 +113,13 @@ export const refreshSchema = async (
         changed = true
       }
     }
+    // the concept is posed once, on a column that carries none: one set by hand from a
+    // private vocabulary is a deliberate choice and must win over the one suggested here
+    if (target['x-refersTo'] && !next['x-refersTo']) {
+      next['x-refersTo'] = target['x-refersTo']
+      concepts.push(next.key)
+      changed = true
+    }
     return next
   })
 
@@ -123,6 +131,9 @@ export const refreshSchema = async (
   }
 
   if (!changed) return
+  // adding a concept is not an innocuous schema change for data-fair: it re-finalizes
+  // the dataset. It only happens on the run that introduces it.
+  if (concepts.length) await log.info(`Concepts posés sur "${ref.title}" : ${concepts.join(', ')}`)
   await log.info(`Mise à jour du schéma de "${ref.title}"`)
   try {
     await axios.patch(`api/v1/datasets/${ref.id}`, { schema: merged })

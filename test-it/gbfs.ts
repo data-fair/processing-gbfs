@@ -23,8 +23,9 @@ import { buildVehicleTypes } from '../lib/gbfs/vehicle-types.ts'
 import { buildPricingPlans, formatPricingSegments } from '../lib/gbfs/pricing-plans.ts'
 import { buildGeofencingZones } from '../lib/gbfs/geofencing-zones.ts'
 import { baseTitle, buildSystemDescription, systemTitle } from '../lib/gbfs/system.ts'
-import { buildSchemas, RESOURCE_FEEDS } from '../lib/schemas.ts'
+import { buildSchemas, RESOURCE_FEEDS, STATION_CONCEPT, VEHICLE_TYPE_CONCEPT } from '../lib/schemas.ts'
 import { datasetTitle } from '../lib/upload.ts'
+import processingSchema from '../processing-config-schema.json' with { type: 'json' }
 
 const resources = path.join(path.dirname(fileURLToPath(import.meta.url)), 'resources')
 
@@ -276,14 +277,24 @@ describe('schémas produits', () => {
     }
   })
 
-  it('ne pose que des concepts du vocabulaire standard', () => {
+  it('pose les concepts standard et les deux concepts propres au plugin', () => {
     const schemas = buildSchemas()
-    // the join keys are left unannotated: the standard vocabulary has no concept for
-    // them, and one set by hand from a private vocabulary must not be overwritten
-    assert.equal(schemas.stations.find(property => property.key === 'station_id')?.['x-refersTo'], undefined)
-    assert.equal(schemas.vehicles.find(property => property.key === 'vehicle_type_id')?.['x-refersTo'], undefined)
     assert.equal(schemas.stations.find(property => property.key === 'name')?.['x-refersTo'], 'http://www.w3.org/2000/01/rdf-schema#label')
     assert.equal(schemas.stations.find(property => property.key === 'lat')?.['x-refersTo'], 'http://schema.org/latitude')
+
+    // the same concept on both sides of a join, otherwise annotating is pointless
+    assert.equal(schemas.stations.find(property => property.key === 'station_id')?.['x-refersTo'], STATION_CONCEPT)
+    assert.equal(schemas.vehicles.find(property => property.key === 'station_id')?.['x-refersTo'], STATION_CONCEPT)
+    assert.equal(schemas.vehicles.find(property => property.key === 'vehicle_type_id')?.['x-refersTo'], VEHICLE_TYPE_CONCEPT)
+    assert.equal(schemas['vehicle-types'].find(property => property.key === 'vehicle_type_id')?.['x-refersTo'], VEHICLE_TYPE_CONCEPT)
+  })
+
+  it('annonce les mêmes URI que celles écrites dans le formulaire', () => {
+    // data-fair matches a concept by the URI listed in its identifiers: the note tells
+    // the user what to declare, so it must state exactly what the plugin poses
+    const note = JSON.stringify(processingSchema)
+    assert.ok(note.includes(STATION_CONCEPT), 'URI du concept station absente du formulaire')
+    assert.ok(note.includes(VEHICLE_TYPE_CONCEPT), 'URI du concept type de véhicule absente du formulaire')
   })
 
   it('ne produit que des lignes plates', async () => {

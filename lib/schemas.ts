@@ -39,6 +39,23 @@ export const RESOURCE_FEEDS: Record<DataResourceKey, { required: string, optiona
   'geofencing-zones': { required: 'geofencing_zones', optional: [] }
 }
 
+/**
+ * Concepts this plugin mints, for the two identifiers that join the produced datasets
+ * and that the standard vocabulary has no equivalent for.
+ *
+ * data-fair keeps an unknown x-refersTo as it is: fixConcepts looks the URI up in the
+ * standard vocabulary then in the owner's private one, and simply leaves the field
+ * without an x-concept when neither declares it. Everything that consumes a concept
+ * matches on a known URI, so an undeclared one is inert. The day the organisation
+ * declares a private concept carrying one of these URIs among its identifiers, the
+ * annotation starts working on its own, with no change here.
+ *
+ * The namespace follows data-fair's own convention for minted concepts, such as
+ * https://github.com/data-fair/lib/account.
+ */
+export const STATION_CONCEPT = 'https://github.com/data-fair/processing-gbfs#station'
+export const VEHICLE_TYPE_CONCEPT = 'https://github.com/data-fair/processing-gbfs#vehicle-type'
+
 const LABEL = 'http://www.w3.org/2000/01/rdf-schema#label'
 const DESCRIPTION = 'http://schema.org/description'
 const GEOMETRY = 'https://purl.org/geojson/vocab#geometry'
@@ -137,15 +154,9 @@ const geometryProperty: SchemaProperty = {
   'x-capabilities': { textAgg: false }
 }
 
-/**
- * station_id and vehicle_type_id are what join the produced datasets to each other and
- * to an organisation's own reference data, but the standard vocabulary has no concept
- * for either. Annotating them takes a private vocabulary, so it is left to whoever owns
- * one: refreshSchema never touches x-refersTo, so a concept set by hand survives.
- */
 export const buildSchemas = (): Record<DataResourceKey, SchemaProperty[]> => ({
   stations: [
-    id('station_id', 'Identifiant de la station'),
+    { ...id('station_id', 'Identifiant de la station'), 'x-refersTo': STATION_CONCEPT },
     { key: 'name', title: 'Nom de la station', type: 'string', 'x-refersTo': LABEL },
     { key: 'short_name', title: 'Nom court', type: 'string' },
     { key: 'address', title: 'Adresse', type: 'string', 'x-refersTo': ADDRESS },
@@ -175,9 +186,9 @@ export const buildSchemas = (): Record<DataResourceKey, SchemaProperty[]> => ({
     id('vehicle_id', 'Identifiant du véhicule', 'Réattribué à chaque location par les services qui protègent la vie privée de leurs usagers.'),
     { key: 'lat', title: 'Latitude', type: 'number', 'x-refersTo': LATITUDE },
     { key: 'lon', title: 'Longitude', type: 'number', 'x-refersTo': LONGITUDE },
-    id('station_id', 'Station', 'Station où le véhicule est stationné.'),
+    { ...id('station_id', 'Station', 'Station où le véhicule est stationné.'), 'x-refersTo': STATION_CONCEPT },
     id('home_station_id', "Station d'attache", 'Station à laquelle le véhicule doit être rendu.'),
-    id('vehicle_type_id', 'Identifiant du type de véhicule'),
+    { ...id('vehicle_type_id', 'Identifiant du type de véhicule'), 'x-refersTo': VEHICLE_TYPE_CONCEPT },
     { key: 'vehicle_type_name', title: 'Modèle', type: 'string', 'x-refersTo': LABEL },
     formFactor,
     propulsionType,
@@ -195,7 +206,7 @@ export const buildSchemas = (): Record<DataResourceKey, SchemaProperty[]> => ({
     updatedAt
   ],
   'vehicle-types': [
-    id('vehicle_type_id', 'Identifiant du type de véhicule'),
+    { ...id('vehicle_type_id', 'Identifiant du type de véhicule'), 'x-refersTo': VEHICLE_TYPE_CONCEPT },
     { key: 'name', title: 'Nom', type: 'string', 'x-refersTo': LABEL },
     formFactor,
     propulsionType,

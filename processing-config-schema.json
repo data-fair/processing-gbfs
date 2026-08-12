@@ -131,7 +131,7 @@
           "url",
           "language",
           {
-            "markdown": "**La création des concepts « station » et « type de véhicule » est fortement recommandée pour construire de meilleures applications** : ils rendent joignables les colonnes `station_id` et `vehicle_type_id`, qui relient les jeux produits entre eux mais n'existent pas dans le vocabulaire standard. Créez-les dans l'onglet <a href=\"/data-fair/settings\" target=\"_blank\" rel=\"noopener noreferrer\"><strong>Vocabulaire privé</strong></a> des paramètres de votre organisation, puis posez-les à la main sur ces colonnes : le traitement ne les écrase jamais."
+            "markdown": "**La déclaration des concepts « station » et « type de véhicule » est fortement recommandée pour construire de meilleures applications** : ils rendent joignables les colonnes `station_id` et `vehicle_type_id`, qui relient les jeux produits entre eux mais n'existent pas dans le vocabulaire standard. Le traitement les pose déjà sur les colonnes ; ils restent sans effet tant que votre organisation ne les a pas déclarés dans l'onglet <a href=\"/data-fair/settings\" target=\"_blank\" rel=\"noopener noreferrer\"><strong>Vocabulaire privé</strong></a>, avec ces identifiants :\n\n- `https://github.com/data-fair/processing-gbfs#station`\n- `https://github.com/data-fair/processing-gbfs#vehicle-type`"
           }
         ]
       }

@@ -38,6 +38,34 @@ par `lib/gbfs/normalize.ts`, et le reste du code ne voit que la forme 3.0 :
 Un flux que le service ne publie pas est signalé puis ignoré : le jeu de données
 correspondant n'est pas produit, les autres le sont.
 
+## Concepts
+
+Les colonnes reconnues par le vocabulaire standard sont annotées automatiquement :
+libellé, description, adresse, code postal, latitude, longitude, géométrie, téléphone et
+page web.
+
+Restent les deux identifiants qui relient les jeux produits entre eux, et pour lesquels
+le vocabulaire standard n'a pas d'équivalent. Le traitement leur pose deux concepts
+qu'il définit lui-même :
+
+| Concept | Colonnes annotées |
+|---|---|
+| `https://github.com/data-fair/processing-gbfs#station` | `station_id` dans les stations et dans les véhicules |
+| `https://github.com/data-fair/processing-gbfs#vehicle-type` | `vehicle_type_id` dans les véhicules et dans les types de véhicules |
+
+Ces URI sont posées dans tous les cas. Tant qu'elles ne sont déclarées nulle part, elles
+restent inertes : `fixConcepts` cherche l'URI dans le vocabulaire standard puis dans le
+vocabulaire privé du propriétaire, ne la trouve pas, et laisse la colonne sans
+`x-concept`. Tout ce qui consomme un concept dans data-fair compare à des URI connues,
+donc rien ne se déclenche.
+
+Pour les activer, déclarez deux concepts dans l'onglet **Vocabulaire privé** des
+paramètres de l'organisation, en reprenant ces URI dans leurs identifiants. Les jeux
+existants seront annotés à l'exécution suivante.
+
+Une colonne qui porte déjà un concept posé à la main n'est jamais écrasée : le
+traitement ne pose le sien que sur une colonne qui n'en a aucun.
+
 ## Développement
 
 ```sh
