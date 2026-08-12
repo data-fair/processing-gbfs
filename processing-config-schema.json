@@ -131,7 +131,7 @@
           "url",
           "language",
           {
-            "markdown": "**Pour croiser ces jeux de données entre eux.** Data Fair sait rapprocher deux jeux quand leurs colonnes portent le même concept. Or les identifiants qui relient les jeux produits ici — `station_id`, présent dans les stations comme dans les véhicules, et `vehicle_type_id`, présent dans les véhicules comme dans les types de véhicules — n'existent pas dans le vocabulaire standard, et restent donc sans concept. Si vous voulez les rendre joignables, créez les concepts correspondants dans l'onglet <a href=\"/data-fair/settings\" target=\"_blank\" rel=\"noopener noreferrer\"><strong>Vocabulaire privé</strong></a> des paramètres de votre organisation, puis posez-les à la main sur ces colonnes : le traitement ne les écrase jamais."
+            "markdown": "**La création des concepts « station » et « type de véhicule » est fortement recommandée pour construire de meilleures applications** : ils rendent joignables les colonnes `station_id` et `vehicle_type_id`, qui relient les jeux produits entre eux mais n'existent pas dans le vocabulaire standard. Créez-les dans l'onglet <a href=\"/data-fair/settings\" target=\"_blank\" rel=\"noopener noreferrer\"><strong>Vocabulaire privé</strong></a> des paramètres de votre organisation, puis posez-les à la main sur ces colonnes : le traitement ne les écrase jamais."
           }
         ]
       }
