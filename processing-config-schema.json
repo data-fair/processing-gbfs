@@ -21,8 +21,7 @@
             "datasetTitle": {
               "type": "string",
               "title": "Titre de base des jeux de données",
-              "description": "Chaque jeu créé porte ce titre suivi de son rôle, par exemple « GBFS - stations ». À défaut, le nom que le service se donne est utilisé.",
-              "default": "GBFS"
+              "description": "Chaque jeu créé porte ce titre suivi de son rôle, par exemple « GBFS - stations ». Laissé vide, le nom que le service se donne dans system_information est utilisé."
             },
             "resources": {
               "type": "array",
@@ -83,22 +82,25 @@
                   },
                   "id": {
                     "type": "string",
-                    "title": "Identifiant"
+                    "title": "Jeu de données",
+                    "layout": {
+                      "getItems": {
+                        "url": "${context.dataFairUrl}/api/v1/datasets?select=id,title&${context.ownerFilter}&raw=true",
+                        "qSearchParam": "q",
+                        "itemsResults": "data.results",
+                        "itemTitle": "item.title",
+                        "itemKey": "item.id",
+                        "itemValue": "item.id"
+                      }
+                    }
                   },
                   "title": {
                     "type": "string",
-                    "title": "Titre"
+                    "title": "Titre",
+                    "layout": { "comp": "none" }
                   }
                 },
-                "layout": {
-                  "getItems": {
-                    "url": "${context.dataFairUrl}/api/v1/datasets?select=id,title&${context.ownerFilter}&raw=true",
-                    "qSearchParam": "q",
-                    "itemsResults": "data.results",
-                    "itemTitle": "item.title",
-                    "itemKey": "item.id"
-                  }
-                }
+                "layout": { "children": ["key", "id"] }
               }
             }
           }

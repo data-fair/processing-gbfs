@@ -10,7 +10,7 @@ import { buildVehicles } from './gbfs/vehicles.ts'
 import { buildVehicleTypes } from './gbfs/vehicle-types.ts'
 import { buildPricingPlans } from './gbfs/pricing-plans.ts'
 import { buildGeofencingZones } from './gbfs/geofencing-zones.ts'
-import { buildSystemDescription, systemTitle } from './gbfs/system.ts'
+import { baseTitle, buildSystemDescription } from './gbfs/system.ts'
 import { RESOURCE_FEEDS, RESOURCE_TITLES, buildSchemas, type DataResourceKey, type ResourceKey } from './schemas.ts'
 import {
   assertDatasetExists,
@@ -149,10 +149,11 @@ export const run = async (context: ProcessingContext<ProcessingConfig>) => {
 
   if (create) {
     await log.step('Création des jeux de données')
-    const baseTitle = config.datasetTitle?.trim() || systemTitle(documents, language) || 'Service GBFS'
+    const base = baseTitle(config.datasetTitle, documents, language)
+    await log.info(`Titre de base des jeux de données : ${base}`)
     for (const key of wanted) {
       throwIfStopped()
-      const title = datasetTitle(baseTitle, key)
+      const title = datasetTitle(base, key)
       if (key === 'system') {
         const description = buildSystemDescription(documents, service.version, language)
         refs.push(await createMetadataDataset(axios, title, description, processingId, log))

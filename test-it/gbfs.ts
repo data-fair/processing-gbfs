@@ -22,7 +22,7 @@ import { buildVehicles } from '../lib/gbfs/vehicles.ts'
 import { buildVehicleTypes } from '../lib/gbfs/vehicle-types.ts'
 import { buildPricingPlans, formatPricingSegments } from '../lib/gbfs/pricing-plans.ts'
 import { buildGeofencingZones } from '../lib/gbfs/geofencing-zones.ts'
-import { buildSystemDescription, systemTitle } from '../lib/gbfs/system.ts'
+import { baseTitle, buildSystemDescription, systemTitle } from '../lib/gbfs/system.ts'
 import { buildSchemas, RESOURCE_FEEDS } from '../lib/schemas.ts'
 import { datasetTitle } from '../lib/upload.ts'
 
@@ -309,6 +309,16 @@ describe('schémas produits', () => {
 })
 
 describe('titres des jeux de données', () => {
+  it('replie le titre de base sur le nom du service, puis sur GBFS', () => {
+    const documents = loadDocuments('v3', ['system_information'])
+    assert.equal(baseTitle('Mon service', documents, 'fr'), 'Mon service')
+    // no schema default, so an empty field really reaches the fallback
+    assert.equal(baseTitle(undefined, documents, 'fr'), 'Citiz Grand Poitiers')
+    assert.equal(baseTitle('', documents, 'fr'), 'Citiz Grand Poitiers')
+    assert.equal(baseTitle('   ', documents, 'fr'), 'Citiz Grand Poitiers')
+    assert.equal(baseTitle(undefined, {}, 'fr'), 'GBFS')
+  })
+
   it('laisse le jeu de métadonnées porter le titre de base', () => {
     assert.equal(datasetTitle('Citiz Grand Poitiers', 'system'), 'Citiz Grand Poitiers')
     assert.equal(datasetTitle('Citiz Grand Poitiers', 'stations'), 'Citiz Grand Poitiers - stations')

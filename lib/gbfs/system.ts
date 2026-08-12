@@ -44,3 +44,16 @@ export const buildSystemDescription = (
 export const systemTitle = (documents: Record<string, GbfsDocument>, language?: string): string | undefined =>
   localized(documents.system_information?.data?.name, language) ??
   text(documents.system_information?.data?.system_id)
+
+/**
+ * The title every created dataset is named after.
+ *
+ * The fallback lives here rather than as a default in the configuration schema: a
+ * schema default would fill the field with "GBFS" the moment the form opens, and the
+ * service's own name would never get a chance to be used.
+ */
+export const baseTitle = (
+  configuredTitle: unknown,
+  documents: Record<string, GbfsDocument>,
+  language?: string
+): string => text(configuredTitle) ?? systemTitle(documents, language) ?? 'GBFS'
