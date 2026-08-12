@@ -11,7 +11,7 @@
       "oneOf": [
         {
           "title": "Créer les jeux de données",
-          "required": ["datasetTitle", "resources"],
+          "required": ["resources"],
           "properties": {
             "datasetMode": {
               "type": "string",
@@ -21,49 +21,25 @@
             "datasetTitle": {
               "type": "string",
               "title": "Titre de base des jeux de données",
-              "description": "Chaque jeu créé porte ce titre suivi de son rôle, par exemple « Citiz Grand Poitiers - stations »."
+              "description": "Chaque jeu créé porte ce titre suivi de son rôle, par exemple « GBFS - stations ». À défaut, le nom que le service se donne est utilisé.",
+              "default": "GBFS"
             },
             "resources": {
-              "type": "object",
+              "type": "array",
               "title": "Jeux de données à produire",
               "description": "Seuls les flux cochés sont lus. Un flux absent du service GBFS est ignoré avec un avertissement.",
-              "properties": {
-                "system": {
-                  "type": "boolean",
-                  "title": "Métadonnées",
-                  "description": "Jeu sans données, porteur des fichiers JSON du service en pièces jointes.",
-                  "default": true
-                },
-                "stations": {
-                  "type": "boolean",
-                  "title": "Stations",
-                  "description": "Un point par station, avec sa disponibilité à l'instant de l'exécution.",
-                  "default": true
-                },
-                "vehicles": {
-                  "type": "boolean",
-                  "title": "Véhicules",
-                  "description": "Un point par véhicule disponible, avec son type et son état.",
-                  "default": true
-                },
-                "vehicle-types": {
-                  "type": "boolean",
-                  "title": "Types de véhicules",
-                  "description": "Catalogue des modèles proposés par le service.",
-                  "default": true
-                },
-                "pricing-plans": {
-                  "type": "boolean",
-                  "title": "Tarifs",
-                  "description": "Grille tarifaire déclarée par le service.",
-                  "default": false
-                },
-                "geofencing-zones": {
-                  "type": "boolean",
-                  "title": "Zones de circulation",
-                  "description": "Zones où la circulation, le départ ou l'arrivée sont restreints.",
-                  "default": false
-                }
+              "uniqueItems": true,
+              "default": ["system", "stations", "vehicles", "vehicle-types", "pricing-plans", "geofencing-zones"],
+              "items": {
+                "type": "string",
+                "oneOf": [
+                  { "const": "system", "title": "Métadonnées" },
+                  { "const": "stations", "title": "Stations" },
+                  { "const": "vehicles", "title": "Véhicules" },
+                  { "const": "vehicle-types", "title": "Types de véhicules" },
+                  { "const": "pricing-plans", "title": "Tarifs" },
+                  { "const": "geofencing-zones", "title": "Zones de circulation" }
+                ]
               }
             }
           }

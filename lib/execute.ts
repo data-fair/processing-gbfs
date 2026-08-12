@@ -35,8 +35,11 @@ const throwIfStopped = () => {
 const DATA_KEYS: DataResourceKey[] = ['stations', 'vehicles', 'vehicle-types', 'pricing-plans', 'geofencing-zones']
 const ALL_KEYS: ResourceKey[] = ['system', ...DATA_KEYS]
 
-const wantedFromResources = (resources: any = {}): ResourceKey[] =>
-  ALL_KEYS.filter(key => !!resources[key])
+export const wantedFromResources = (resources: any): ResourceKey[] => {
+  if (Array.isArray(resources)) return ALL_KEYS.filter(key => resources.includes(key))
+  // configurations written before the list became a multi-select carry an object of booleans
+  return ALL_KEYS.filter(key => !!resources?.[key])
+}
 
 const refsFromConfig = (datasets: any[]): DatasetRef[] => {
   const seen = new Set<string>()

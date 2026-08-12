@@ -29,9 +29,23 @@ describe('traitement GBFS', () => {
 
   it('déclare les mêmes rôles à la création et à la mise à jour', () => {
     const [datasetsTab] = processingSchema.allOf as any[]
-    const created = Object.keys(datasetsTab.oneOf[0].properties.resources.properties)
+    const resources = datasetsTab.oneOf[0].properties.resources
+    const created = resources.items.oneOf.map((role: any) => role.const)
     const updated = datasetsTab.oneOf[1].properties.datasets.items.properties.key.oneOf.map((role: any) => role.const)
-    assert.deepEqual(created.sort(), updated.sort())
+    assert.deepEqual([...created].sort(), [...updated].sort())
+    // every role is produced unless the user unchecks it
+    assert.deepEqual([...resources.default].sort(), [...created].sort())
+  })
+
+  it('lit la liste des ressources dans ses deux formes', async () => {
+    const { wantedFromResources } = await import('../lib/execute.ts')
+    assert.deepEqual(wantedFromResources(['stations', 'vehicles']), ['stations', 'vehicles'])
+    // configurations written before the list became a multi-select carry an object
+    assert.deepEqual(wantedFromResources({ stations: true, vehicles: false }), ['stations'])
+    assert.deepEqual(wantedFromResources([]), [])
+    assert.deepEqual(wantedFromResources(undefined), [])
+    // the order comes from the plugin, not from what the user clicked first
+    assert.deepEqual(wantedFromResources(['vehicles', 'system']), ['system', 'vehicles'])
   })
 
   it('laisse la configuration intacte, faute de secret à extraire', async () => {
@@ -46,7 +60,7 @@ describe('traitement GBFS', () => {
       processingConfig: {
         datasetMode: 'create',
         datasetTitle: 'GBFS Test',
-        resources: { system: true, stations: true, vehicles: true, 'vehicle-types': true, 'pricing-plans': true, 'geofencing-zones': true },
+        resources: ['system', 'stations', 'vehicles', 'vehicle-types', 'pricing-plans', 'geofencing-zones'],
         url: CITIZ_URL,
         language: 'fr'
       },
