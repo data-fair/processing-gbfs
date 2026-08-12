@@ -58,8 +58,6 @@
               "layout": {
                 "comp": "list",
                 "listEditMode": "inline",
-                "itemTitle": "({ system: 'Métadonnées', stations: 'Stations', vehicles: 'Véhicules', 'vehicle-types': 'Types de véhicules', 'pricing-plans': 'Tarifs', 'geofencing-zones': 'Zones de circulation' })[item.key] || 'Rôle à choisir'",
-                "itemSubtitle": "item.title || item.id",
                 "messages": {
                   "addItem": "Ajouter un jeu de données"
                 }
@@ -100,7 +98,12 @@
                     "layout": { "comp": "none" }
                   }
                 },
-                "layout": { "children": ["key", "id"] }
+                "layout": {
+                  "children": [
+                    { "key": "id", "cols": 8 },
+                    { "key": "key", "cols": 4 }
+                  ]
+                }
               }
             }
           }
@@ -128,7 +131,7 @@
           "url",
           "language",
           {
-            "markdown": "Les identifiants `station_id` et `vehicle_type_id` relient les jeux produits entre eux, mais n'ont pas d'équivalent dans le vocabulaire standard. Pour croiser ces jeux avec votre référentiel, définissez les concepts correspondants dans les <a href=\"/data-fair/settings\" target=\"_blank\" rel=\"noopener noreferrer\"><strong>paramètres de votre organisation</strong></a>, puis posez-les sur les colonnes concernées. Le traitement ne les écrase jamais."
+            "markdown": "**Pour croiser ces jeux de données entre eux.** Data Fair sait rapprocher deux jeux quand leurs colonnes portent le même concept. Or les identifiants qui relient les jeux produits ici — `station_id`, présent dans les stations comme dans les véhicules, et `vehicle_type_id`, présent dans les véhicules comme dans les types de véhicules — n'existent pas dans le vocabulaire standard, et restent donc sans concept. Si vous voulez les rendre joignables, créez les concepts correspondants dans l'onglet <a href=\"/data-fair/settings\" target=\"_blank\" rel=\"noopener noreferrer\"><strong>Vocabulaire privé</strong></a> des paramètres de votre organisation, puis posez-les à la main sur ces colonnes : le traitement ne les écrase jamais."
           }
         ]
       }
