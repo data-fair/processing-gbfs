@@ -22,7 +22,12 @@ export const describeError = (err: any) => {
   return body ? `${err.message} : ${body}` : err.message
 }
 
-export const datasetTitle = (baseTitle: string, key: ResourceKey) => `${baseTitle} - ${RESOURCE_TITLES[key]}`
+/**
+ * The metadata dataset is the head of the family, not one of its members: it carries
+ * the service's own name, and the data datasets hang off it with their role appended.
+ */
+export const datasetTitle = (baseTitle: string, key: ResourceKey) =>
+  key === 'system' ? baseTitle : `${baseTitle} - ${RESOURCE_TITLES[key]}`
 
 export const createMetadataDataset = async (
   axios: AxiosInstance,

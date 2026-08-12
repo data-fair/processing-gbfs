@@ -24,6 +24,7 @@ import { buildPricingPlans, formatPricingSegments } from '../lib/gbfs/pricing-pl
 import { buildGeofencingZones } from '../lib/gbfs/geofencing-zones.ts'
 import { buildSystemDescription, systemTitle } from '../lib/gbfs/system.ts'
 import { buildSchemas, RESOURCE_FEEDS } from '../lib/schemas.ts'
+import { datasetTitle } from '../lib/upload.ts'
 
 const resources = path.join(path.dirname(fileURLToPath(import.meta.url)), 'resources')
 
@@ -304,6 +305,14 @@ describe('schémas produits', () => {
         )
       }
     }
+  })
+})
+
+describe('titres des jeux de données', () => {
+  it('laisse le jeu de métadonnées porter le titre de base', () => {
+    assert.equal(datasetTitle('Citiz Grand Poitiers', 'system'), 'Citiz Grand Poitiers')
+    assert.equal(datasetTitle('Citiz Grand Poitiers', 'stations'), 'Citiz Grand Poitiers - stations')
+    assert.equal(datasetTitle('GBFS', 'geofencing-zones'), 'GBFS - zones de circulation')
   })
 })
 
