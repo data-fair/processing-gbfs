@@ -73,7 +73,7 @@
           "failOnError",
           "maxIssues",
           {
-            "markdown": "La validation s'appuie sur [gbfs-validator](https://github.com/MobilityData/gbfs-validator), le validateur de référence de la communauté GBFS. Il tourne **dans le traitement** : le flux n'est envoyé à aucun service tiers. Il relit lui-même les fichiers du service, ce qui double les requêtes vers celui-ci."
+            "markdown": "La validation s'appuie sur [gbfs-validator](https://github.com/MobilityData/gbfs-validator), le validateur de référence de la communauté GBFS. Il tourne **dans le traitement** : le flux n'est envoyé à aucun service tiers."
           }
         ]
       }
