@@ -35,7 +35,8 @@
   "homepage": "https://github.com/data-fair/processing-gbfs#readme",
   "dependencies": {
     "form-data": "^4.0.0",
-    "fs-extra": "^11.3.0"
+    "fs-extra": "^11.3.0",
+    "gbfs-validator": "^1.0.18"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",

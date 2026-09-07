@@ -1,117 +1,9 @@
 {
   "type": "object",
   "layout": "tabs",
-  "required": ["datasetMode", "url"],
   "allOf": [
     {
-      "title": "Jeux de données",
-      "default": {
-        "datasetMode": "create"
-      },
-      "oneOf": [
-        {
-          "title": "Créer les jeux de données",
-          "required": ["resources"],
-          "properties": {
-            "datasetMode": {
-              "type": "string",
-              "const": "create",
-              "title": "Action"
-            },
-            "datasetTitle": {
-              "type": "string",
-              "title": "Titre de base des jeux de données",
-              "description": "Chaque jeu créé porte ce titre suivi de son rôle, par exemple « GBFS - stations ». Laissé vide, le nom que le service se donne dans system_information est utilisé."
-            },
-            "resources": {
-              "type": "array",
-              "title": "Jeux de données à produire",
-              "description": "Seuls les flux cochés sont lus. Un flux absent du service GBFS est ignoré avec un avertissement.",
-              "uniqueItems": true,
-              "default": ["system", "stations", "vehicles", "vehicle-types", "pricing-plans", "geofencing-zones"],
-              "items": {
-                "type": "string",
-                "oneOf": [
-                  { "const": "system", "title": "Métadonnées" },
-                  { "const": "stations", "title": "Stations" },
-                  { "const": "vehicles", "title": "Véhicules" },
-                  { "const": "vehicle-types", "title": "Types de véhicules" },
-                  { "const": "pricing-plans", "title": "Tarifs" },
-                  { "const": "geofencing-zones", "title": "Zones de circulation" }
-                ]
-              }
-            }
-          }
-        },
-        {
-          "title": "Mettre à jour les jeux de données",
-          "required": ["datasets"],
-          "properties": {
-            "datasetMode": {
-              "type": "string",
-              "const": "update"
-            },
-            "datasets": {
-              "type": "array",
-              "title": "Jeux de données à mettre à jour",
-              "description": "Un jeu par rôle. Retirer une ligne cesse de produire la donnée correspondante.",
-              "layout": {
-                "comp": "list",
-                "listEditMode": "inline",
-                "messages": {
-                  "addItem": "Ajouter un jeu de données"
-                }
-              },
-              "items": {
-                "type": "object",
-                "required": ["key", "id"],
-                "properties": {
-                  "key": {
-                    "type": "string",
-                    "title": "Rôle",
-                    "oneOf": [
-                      { "const": "system", "title": "Métadonnées" },
-                      { "const": "stations", "title": "Stations" },
-                      { "const": "vehicles", "title": "Véhicules" },
-                      { "const": "vehicle-types", "title": "Types de véhicules" },
-                      { "const": "pricing-plans", "title": "Tarifs" },
-                      { "const": "geofencing-zones", "title": "Zones de circulation" }
-                    ]
-                  },
-                  "id": {
-                    "type": "string",
-                    "title": "Jeu de données",
-                    "layout": {
-                      "getItems": {
-                        "url": "${context.dataFairUrl}/api/v1/datasets?select=id,title&${context.ownerFilter}&raw=true",
-                        "qSearchParam": "q",
-                        "itemsResults": "data.results",
-                        "itemTitle": "item.title",
-                        "itemKey": "item.id",
-                        "itemValue": "item.id"
-                      }
-                    }
-                  },
-                  "title": {
-                    "type": "string",
-                    "title": "Titre",
-                    "layout": { "comp": "none" }
-                  }
-                },
-                "layout": {
-                  "children": [
-                    { "key": "id", "cols": 8 },
-                    { "key": "key", "cols": 4 }
-                  ]
-                }
-              }
-            }
-          }
-        }
-      ]
-    },
-    {
-      "title": "Paramètres",
+      "title": "Source",
       "required": ["url"],
       "properties": {
         "url": {
@@ -125,16 +17,281 @@
           "description": "Code de langue à retenir quand le service publie ses libellés en plusieurs langues. La première langue disponible est utilisée à défaut.",
           "default": "fr"
         }
+      }
+    },
+    {
+      "title": "Traitement",
+      "properties": {
+        "mode": {
+          "type": "string",
+          "title": "Mode du traitement",
+          "description": "« Valider uniquement » contrôle le flux et écrit le résumé dans le journal, sans produire de jeu de données. « Importer » conserve le comportement habituel.",
+          "default": "import",
+          "oneOf": [
+            {
+              "const": "import",
+              "title": "Importer les données dans des jeux de données"
+            },
+            {
+              "const": "validate",
+              "title": "Valider uniquement le flux"
+            }
+          ]
+        },
+        "validationEnabled": {
+          "type": "boolean",
+          "title": "Valider le flux avant l'import",
+          "description": "Le résumé de la validation est écrit dans le journal du traitement, l'import se poursuit.",
+          "default": true,
+          "layout": {
+            "if": "rootData.mode !== 'validate'"
+          }
+        },
+        "failOnError": {
+          "type": "boolean",
+          "title": "Échouer si le flux contient des anomalies",
+          "description": "Interrompt le traitement dès qu'un fichier obligatoire est invalide ou manquant. Sinon le résumé est seulement écrit dans le journal.",
+          "default": false,
+          "layout": {
+            "if": "rootData.mode !== 'validate' && rootData.validationEnabled !== false"
+          }
+        },
+        "maxIssues": {
+          "type": "number",
+          "title": "Anomalies détaillées maximum par fichier",
+          "description": "Nombre d'anomalies écrites en détail dans le journal pour chaque fichier. Les compteurs, eux, restent exhaustifs.",
+          "default": 20,
+          "layout": {
+            "if": "rootData.mode === 'validate' || rootData.validationEnabled !== false"
+          }
+        }
       },
       "layout": {
         "children": [
-          "url",
-          "language",
+          "mode",
+          "validationEnabled",
+          "failOnError",
+          "maxIssues",
+          {
+            "markdown": "La validation s'appuie sur [gbfs-validator](https://github.com/MobilityData/gbfs-validator), le validateur de référence de la communauté GBFS. Il tourne **dans le traitement** : le flux n'est envoyé à aucun service tiers. Il relit lui-même les fichiers du service, ce qui double les requêtes vers celui-ci."
+          }
+        ]
+      }
+    },
+    {
+      "title": "Jeux de données",
+      "layout": {
+        "if": "rootData.mode !== 'validate'",
+        "children": [
+          "datasetMode",
+          "$allOf-0",
           {
             "markdown": "**La déclaration des concepts « station » et « type de véhicule » est fortement recommandée pour construire de meilleures applications** : ils rendent joignables les colonnes `station_id` et `vehicle_type_id`, qui relient les jeux produits entre eux mais n'existent pas dans le vocabulaire standard. Le traitement les pose déjà sur les colonnes ; ils restent sans effet tant que votre organisation ne les a pas déclarés dans l'onglet <a href=\"/data-fair/settings\" target=\"_blank\" rel=\"noopener noreferrer\"><strong>Vocabulaire privé</strong></a>, avec ces identifiants :\n\n- `https://github.com/data-fair/processing-gbfs#station`\n- `https://github.com/data-fair/processing-gbfs#vehicle-type`"
           }
         ]
-      }
+      },
+      "properties": {
+        "datasetMode": {
+          "type": "string",
+          "default": "create",
+          "layout": "none"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "not": {
+                  "const": "validate"
+                }
+              }
+            }
+          },
+          "then": {
+            "discriminator": {
+              "propertyName": "datasetMode"
+            },
+            "oneOfLayout": {
+              "label": "Action"
+            },
+            "oneOf": [
+              {
+                "title": "Créer les jeux de données",
+                "required": ["datasetMode"],
+                "properties": {
+                  "datasetMode": {
+                    "type": "string",
+                    "const": "create"
+                  },
+                  "datasetTitle": {
+                    "type": "string",
+                    "title": "Titre de base des jeux de données",
+                    "description": "Chaque jeu créé porte ce titre suivi de son rôle, par exemple « GBFS - stations ». Laissé vide, le nom que le service se donne dans system_information est utilisé."
+                  },
+                  "resources": {
+                    "type": "array",
+                    "title": "Jeux de données à produire",
+                    "description": "Seuls les flux cochés sont lus. Un flux absent du service GBFS est ignoré avec un avertissement.",
+                    "uniqueItems": true,
+                    "minItems": 1,
+                    "default": ["system", "stations", "vehicles", "vehicle-types", "pricing-plans", "geofencing-zones"],
+                    "items": {
+                      "type": "string",
+                      "oneOf": [
+                        { "const": "system", "title": "Métadonnées" },
+                        { "const": "stations", "title": "Stations" },
+                        { "const": "vehicles", "title": "Véhicules" },
+                        { "const": "vehicle-types", "title": "Types de véhicules" },
+                        { "const": "pricing-plans", "title": "Tarifs" },
+                        { "const": "geofencing-zones", "title": "Zones de circulation" }
+                      ]
+                    }
+                  }
+                }
+              },
+              {
+                "title": "Mettre à jour les jeux de données",
+                "required": ["datasetMode", "datasets"],
+                "properties": {
+                  "datasetMode": {
+                    "type": "string",
+                    "const": "update"
+                  },
+                  "datasets": {
+                    "type": "object",
+                    "title": "Jeux de données à mettre à jour",
+                    "description": "Un jeu par rôle. Laisser un rôle vide cesse de produire la donnée correspondante.",
+                    "minProperties": 1,
+                    "errorMessage": {
+                      "minProperties": "Renseignez au moins un rôle à mettre à jour."
+                    },
+                    "properties": {
+                      "system": {
+                        "type": "object",
+                        "title": "Métadonnées",
+                        "description": "Jeu sans données, porteur des fichiers JSON du service en pièces jointes.",
+                        "required": ["id"],
+                        "layout": {
+                          "getItems": {
+                            "url": "${context.dataFairUrl}/api/v1/datasets?select=id,title&size=50&${context.ownerFilter}&raw=true",
+                            "qSearchParam": "q",
+                            "itemsResults": "data.results",
+                            "itemTitle": "item.title",
+                            "itemKey": "item.id"
+                          }
+                        },
+                        "properties": {
+                          "id": { "type": "string", "title": "Identifiant" },
+                          "title": { "type": "string", "title": "Titre" }
+                        }
+                      },
+                      "stations": {
+                        "type": "object",
+                        "title": "Stations",
+                        "description": "Un point par station, avec sa disponibilité.",
+                        "required": ["id"],
+                        "layout": {
+                          "getItems": {
+                            "url": "${context.dataFairUrl}/api/v1/datasets?select=id,title&size=50&${context.ownerFilter}&raw=true",
+                            "qSearchParam": "q",
+                            "itemsResults": "data.results",
+                            "itemTitle": "item.title",
+                            "itemKey": "item.id"
+                          }
+                        },
+                        "properties": {
+                          "id": { "type": "string", "title": "Identifiant" },
+                          "title": { "type": "string", "title": "Titre" }
+                        }
+                      },
+                      "vehicles": {
+                        "type": "object",
+                        "title": "Véhicules",
+                        "description": "Un point par véhicule disponible, avec son modèle et son tarif.",
+                        "required": ["id"],
+                        "layout": {
+                          "getItems": {
+                            "url": "${context.dataFairUrl}/api/v1/datasets?select=id,title&size=50&${context.ownerFilter}&raw=true",
+                            "qSearchParam": "q",
+                            "itemsResults": "data.results",
+                            "itemTitle": "item.title",
+                            "itemKey": "item.id"
+                          }
+                        },
+                        "properties": {
+                          "id": { "type": "string", "title": "Identifiant" },
+                          "title": { "type": "string", "title": "Titre" }
+                        }
+                      },
+                      "vehicle-types": {
+                        "type": "object",
+                        "title": "Types de véhicules",
+                        "description": "Catalogue des modèles proposés par le service.",
+                        "required": ["id"],
+                        "layout": {
+                          "getItems": {
+                            "url": "${context.dataFairUrl}/api/v1/datasets?select=id,title&size=50&${context.ownerFilter}&raw=true",
+                            "qSearchParam": "q",
+                            "itemsResults": "data.results",
+                            "itemTitle": "item.title",
+                            "itemKey": "item.id"
+                          }
+                        },
+                        "properties": {
+                          "id": { "type": "string", "title": "Identifiant" },
+                          "title": { "type": "string", "title": "Titre" }
+                        }
+                      },
+                      "pricing-plans": {
+                        "type": "object",
+                        "title": "Tarifs",
+                        "description": "Grille tarifaire du service, barèmes rendus lisibles.",
+                        "required": ["id"],
+                        "layout": {
+                          "getItems": {
+                            "url": "${context.dataFairUrl}/api/v1/datasets?select=id,title&size=50&${context.ownerFilter}&raw=true",
+                            "qSearchParam": "q",
+                            "itemsResults": "data.results",
+                            "itemTitle": "item.title",
+                            "itemKey": "item.id"
+                          }
+                        },
+                        "properties": {
+                          "id": { "type": "string", "title": "Identifiant" },
+                          "title": { "type": "string", "title": "Titre" }
+                        }
+                      },
+                      "geofencing-zones": {
+                        "type": "object",
+                        "title": "Zones de circulation",
+                        "description": "Une ligne par zone et par règle de circulation.",
+                        "required": ["id"],
+                        "layout": {
+                          "getItems": {
+                            "url": "${context.dataFairUrl}/api/v1/datasets?select=id,title&size=50&${context.ownerFilter}&raw=true",
+                            "qSearchParam": "q",
+                            "itemsResults": "data.results",
+                            "itemTitle": "item.title",
+                            "itemKey": "item.id"
+                          }
+                        },
+                        "properties": {
+                          "id": { "type": "string", "title": "Identifiant" },
+                          "title": { "type": "string", "title": "Titre" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          "errorMessage": {
+            "if": "Complétez la configuration des jeux de données."
+          }
+        }
+      ]
     }
   ]
 }

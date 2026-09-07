@@ -38,6 +38,29 @@ par `lib/gbfs/normalize.ts`, et le reste du code ne voit que la forme 3.0 :
 Un flux que le service ne publie pas est signalé puis ignoré : le jeu de données
 correspondant n'est pas produit, les autres le sont.
 
+## Validation
+
+Le traitement s'appuie sur [gbfs-validator](https://github.com/MobilityData/gbfs-validator),
+le validateur de référence de la communauté GBFS — celui qui alimente
+[gbfs-validator.mobilitydata.org](https://gbfs-validator.mobilitydata.org). Il est
+embarqué comme dépendance et **tourne dans le traitement** : le flux n'est envoyé à aucun
+service tiers, contrairement au plugin GTFS qui poste son archive à un
+`transport-validator`. En contrepartie il relit lui-même les fichiers du service avec son
+propre client HTTP, ce qui double les requêtes vers celui-ci, et n'offre aucun moyen
+d'interrompre une validation en cours.
+
+L'onglet **Traitement** en règle l'usage :
+
+| Réglage | Effet |
+|---|---|
+| Mode « Valider uniquement » | Contrôle le flux, écrit le résumé dans le journal, ne produit aucun jeu de données. L'onglet « Jeux de données » disparaît. |
+| Valider le flux avant l'import | Actif par défaut : le résumé est écrit dans le journal, l'import se poursuit quoi qu'il arrive. |
+| Échouer si le flux contient des anomalies | Interrompt le traitement dès qu'un fichier **obligatoire** est absent ou invalide. Un fichier optionnel en erreur ne bloque jamais : le flux reste exploitable. |
+| Anomalies détaillées maximum par fichier | Ne borne que le détail écrit en `debug`. Les compteurs restent exhaustifs. |
+
+Le validateur couvre les versions 1.0 à 3.0 (plus la 3.1-RC3). Une version qu'il ne
+connaît pas donne un avertissement, jamais un échec.
+
 ## Concepts
 
 Les colonnes reconnues par le vocabulaire standard sont annotées automatiquement :

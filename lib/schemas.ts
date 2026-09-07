@@ -15,6 +15,9 @@ export type ResourceKey = 'system' | 'stations' | 'vehicles' | 'vehicle-types' |
 
 export type DataResourceKey = Exclude<ResourceKey, 'system'>
 
+/** Every role, in the order the datasets are produced: the metadata one carries the others. */
+export const RESOURCE_KEYS: readonly ResourceKey[] = ['system', 'stations', 'vehicles', 'vehicle-types', 'pricing-plans', 'geofencing-zones']
+
 export const RESOURCE_TITLES: Record<ResourceKey, string> = {
   system: 'métadonnées',
   stations: 'stations',
