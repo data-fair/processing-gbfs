@@ -15,6 +15,9 @@ try {
 
 const CITIZ_URL = 'https://backend.citiz.fr/public/provider/9/gbfs/v3.0/gbfs.json'
 
+/** Roles in the order the plugin produces them, as lib/schemas.ts declares them. */
+const RESOURCE_KEYS = ['system', 'stations', 'vehicles', 'vehicle-types', 'pricing-plans', 'geofencing-zones']
+
 /** The two branches of the datasets tab, behind the mode guard that hides it in validate mode. */
 const datasetModes = () => (processingSchema.allOf as any[])[2].allOf[0].then.oneOf
 const createBranch = () => datasetModes()[0]
@@ -37,28 +40,66 @@ describe('traitement GBFS', () => {
 
   it('déclare les mêmes rôles à la création et à la mise à jour', () => {
     const created = createBranch().properties.resources.items.oneOf.map((role: any) => role.const)
-    const updated = Object.keys(updateBranch().properties.datasets.properties)
+    const updated = updateBranch().properties.datasets.items.properties.resource.oneOf.map((role: any) => role.const)
     assert.deepEqual([...created].sort(), [...updated].sort())
     // every role is produced unless the user unchecks it
     assert.deepEqual([...createBranch().properties.resources.default].sort(), [...created].sort())
   })
 
-  it('donne un sélecteur cherchable et non tronqué à chaque rôle', () => {
-    for (const role of Object.values<any>(updateBranch().properties.datasets.properties)) {
-      const { url, qSearchParam } = role.layout.getItems
-      // without one of the two the picker loads every dataset at once
-      assert.ok(url.includes('{q}') || qSearchParam)
-      // data-fair returns 12 results by default, too few for a usable autocomplete
-      assert.ok(url.includes('size=50'))
-      assert.deepEqual(role.required, ['id'])
-    }
+  it('liste les jeux à mettre à jour dans la forme que la plateforme sait lire', () => {
+    // processings ne relie un traitement à ses jeux que par un objet `dataset`, à la
+    // racine de la configuration ou dans chaque entrée d'un tableau `datasets`
+    const datasets = updateBranch().properties.datasets
+    assert.equal(datasets.type, 'array')
+    assert.deepEqual(datasets.items.required, ['resource'])
+    assert.ok(datasets.items.properties.dataset)
+    // une ligne par rôle, ni ajoutée ni supprimée dans le formulaire : le rôle est en
+    // lecture seule, seul le jeu de données se choisit
+    assert.deepEqual(datasets.default.map((entry: any) => entry.resource), RESOURCE_KEYS)
+    // inline sans action : les lignes restent modifiables, mais ni ajoutées ni supprimées
+    assert.deepEqual(datasets.layout, { listEditMode: 'inline', listActions: [] })
+    assert.equal(datasets.items.properties.resource.layout.props.readonly, true)
   })
 
-  it('lit la liste des ressources dans ses deux formes', async () => {
+  it('donne un sélecteur cherchable et non tronqué aux jeux à mettre à jour', () => {
+    const picker = updateBranch().properties.datasets.items.properties.dataset
+    const { url, qSearchParam } = picker.layout.getItems
+    // without one of the two the picker loads every dataset at once
+    assert.ok(url.includes('{q}') || qSearchParam)
+    // data-fair returns 12 results by default, too few for a usable autocomplete
+    assert.ok(url.includes('size=50'))
+    assert.deepEqual(picker.required, ['id'])
+  })
+
+  it('lit la liste des jeux configurés et la réécrit à l\'identique', async () => {
+    const { refsFromConfig, datasetsFromRefs } = await import('../lib/execute.ts')
+    const datasets = [
+      { resource: 'stations', dataset: { id: 'ds2', title: 'Stations' } },
+      { resource: 'system', dataset: { id: 'ds1', title: 'GBFS' } }
+    ]
+    // whatever the order in the configuration, the roles come back in RESOURCE_KEYS order
+    const refs = [{ key: 'system', id: 'ds1', title: 'GBFS' }, { key: 'stations', id: 'ds2', title: 'Stations' }]
+    assert.deepEqual(refsFromConfig(datasets), refs)
+    // a role whose dataset was left empty is simply not produced
+    assert.deepEqual(refsFromConfig([datasets[1], { resource: 'stations' }]), [refs[0]])
+    assert.deepEqual(refsFromConfig(undefined), [])
+    // the title falls back on the id, which a picker always fills
+    assert.deepEqual(refsFromConfig([{ resource: 'system', dataset: { id: 'ds1' } }]), [{ key: 'system', id: 'ds1', title: 'ds1' }])
+
+    // la configuration écrite porte toutes les lignes, jeu de données ou non
+    assert.deepEqual(datasetsFromRefs(refs as any), [
+      { resource: 'system', dataset: { id: 'ds1', title: 'GBFS' } },
+      { resource: 'stations', dataset: { id: 'ds2', title: 'Stations' } },
+      { resource: 'vehicles' },
+      { resource: 'vehicle-types' },
+      { resource: 'pricing-plans' },
+      { resource: 'geofencing-zones' }
+    ])
+  })
+
+  it('lit la liste des ressources à produire', async () => {
     const { wantedFromResources } = await import('../lib/execute.ts')
     assert.deepEqual(wantedFromResources(['stations', 'vehicles']), ['stations', 'vehicles'])
-    // configurations written before the list became a multi-select carry an object
-    assert.deepEqual(wantedFromResources({ stations: true, vehicles: false }), ['stations'])
     assert.deepEqual(wantedFromResources([]), [])
     assert.deepEqual(wantedFromResources(undefined), [])
     // the order comes from the plugin, not from what the user clicked first
@@ -111,8 +152,10 @@ describe('traitement GBFS', () => {
 
     await gbfsProcessing.run(context as any)
     assert.equal(context.processingConfig.datasetMode, 'update')
-    // the create run rewrites the configuration as one dataset per role
-    assert.ok(Object.keys(context.processingConfig.datasets).length)
-    assert.ok(context.processingConfig.datasets.stations.id)
+    // the create run rewrites the configuration as one entry per role, each carrying
+    // the dataset object processings reads to link the processing to what it feeds
+    const datasets = context.processingConfig.datasets as any[]
+    assert.deepEqual(datasets.map(entry => entry.resource), RESOURCE_KEYS)
+    for (const entry of datasets) assert.ok(entry.dataset.id, `${entry.resource} doit avoir un identifiant`)
   })
 })

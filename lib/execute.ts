@@ -35,33 +35,39 @@ const throwIfStopped = () => {
 
 /** Kept in RESOURCE_KEYS order whatever order the form wrote the selection in. */
 export const wantedFromResources = (resources: any): ResourceKey[] => {
-  if (Array.isArray(resources)) return RESOURCE_KEYS.filter(key => resources.includes(key))
-  // configurations written before the list became a multi-select carry an object of booleans
-  return RESOURCE_KEYS.filter(key => !!resources?.[key])
+  const selected: string[] = Array.isArray(resources) ? resources : []
+  return RESOURCE_KEYS.filter(key => selected.includes(key))
 }
 
 /**
- * One entry per role, empty roles left out; the config object is unordered, RESOURCE_KEYS is not.
+ * One entry per role, kept in RESOURCE_KEYS order and roles without a dataset left out.
  *
- * The array of `{ key, id, title }` written before the roles became named properties is
- * still read: the plugin has never been released, but a configuration may exist on a
- * staging instance, and the first run rewrites it through patchConfig.
+ * `[{ resource, dataset: { id, title } }]` is the shape the platform reads to list the
+ * datasets a processing feeds: processings looks for a `dataset` object, either at the
+ * root of the configuration or inside each entry of a `datasets` array.
  */
-const refsFromConfig = (datasets: any): DatasetRef[] => {
-  const byKey = Array.isArray(datasets)
-    ? Object.fromEntries(datasets.map((entry: any) => [entry?.key, entry]))
-    : datasets
+export const refsFromConfig = (datasets: any): DatasetRef[] => {
+  const entries: any[] = Array.isArray(datasets) ? datasets : []
+  const byKey: Record<string, any> = Object.fromEntries(entries.map(entry => [entry?.resource, entry?.dataset]))
   const refs: DatasetRef[] = []
   for (const key of RESOURCE_KEYS) {
-    const entry = byKey?.[key]
-    if (!entry?.id) continue
-    refs.push({ key, id: entry.id, title: entry.title || entry.id })
+    const dataset = byKey[key]
+    if (!dataset?.id) continue
+    refs.push({ key, id: dataset.id, title: dataset.title || dataset.id })
   }
   return refs
 }
 
-const datasetsFromRefs = (refs: DatasetRef[]) =>
-  Object.fromEntries(refs.map(ref => [ref.key, { id: ref.id, title: ref.title }]))
+/**
+ * One line per role, the dataset filled only for the roles actually produced.
+ *
+ * The form neither adds nor removes lines: the configuration carries them all, and a
+ * line left without a dataset is a role this processing does not produce.
+ */
+export const datasetsFromRefs = (refs: DatasetRef[]) => {
+  const byKey = Object.fromEntries(refs.map(ref => [ref.key, { id: ref.id, title: ref.title }]))
+  return RESOURCE_KEYS.map(key => byKey[key] ? { resource: key, dataset: byKey[key] } : { resource: key })
+}
 
 /** The feeds that must be fetched to produce the requested resources. */
 const feedsFor = (wanted: ResourceKey[], allFeeds: string[]): string[] => {
@@ -153,10 +159,6 @@ export const run = async (context: ProcessingContext<ProcessingConfig>) => {
     throw new Error(create
       ? 'Aucun jeu de données à produire : sélectionnez au moins une donnée.'
       : 'Aucun jeu de données à mettre à jour : renseignez au moins un rôle.')
-  }
-  if (Array.isArray(config.datasets)) {
-    await log.warning('Configuration héritée : la liste des jeux de données est convertie en un jeu par rôle.')
-    await patchConfig({ datasetMode: 'update', datasets: datasetsFromRefs(configuredRefs) } as any)
   }
 
   const service = await discover(config.url, language, axios, log)

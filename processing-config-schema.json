@@ -159,126 +159,59 @@
                     "const": "update"
                   },
                   "datasets": {
-                    "type": "object",
+                    "type": "array",
                     "title": "Jeux de données à mettre à jour",
-                    "description": "Un jeu par rôle. Laisser un rôle vide cesse de produire la donnée correspondante.",
-                    "minProperties": 1,
-                    "errorMessage": {
-                      "minProperties": "Renseignez au moins un rôle à mettre à jour."
+                    "description": "Une ligne par donnée produite. Laisser une ligne sans jeu de données cesse de produire la donnée correspondante.",
+                    "default": [
+                      { "resource": "system" },
+                      { "resource": "stations" },
+                      { "resource": "vehicles" },
+                      { "resource": "vehicle-types" },
+                      { "resource": "pricing-plans" },
+                      { "resource": "geofencing-zones" }
+                    ],
+                    "layout": {
+                      "listEditMode": "inline",
+                      "listActions": []
                     },
-                    "properties": {
-                      "system": {
-                        "type": "object",
-                        "title": "Métadonnées",
-                        "description": "Jeu sans données, porteur des fichiers JSON du service en pièces jointes.",
-                        "required": ["id"],
-                        "layout": {
-                          "getItems": {
-                            "url": "${context.dataFairUrl}/api/v1/datasets?select=id,title&size=50&${context.ownerFilter}&raw=true",
-                            "qSearchParam": "q",
-                            "itemsResults": "data.results",
-                            "itemTitle": "item.title",
-                            "itemKey": "item.id"
-                          }
+                    "items": {
+                      "type": "object",
+                      "required": ["resource"],
+                      "layout": [
+                        { "children": ["resource"], "cols": 4 },
+                        { "children": ["dataset"], "cols": 8 }
+                      ],
+                      "properties": {
+                        "resource": {
+                          "type": "string",
+                          "title": "Donnée",
+                          "oneOf": [
+                            { "const": "system", "title": "Métadonnées" },
+                            { "const": "stations", "title": "Stations" },
+                            { "const": "vehicles", "title": "Véhicules" },
+                            { "const": "vehicle-types", "title": "Types de véhicules" },
+                            { "const": "pricing-plans", "title": "Tarifs" },
+                            { "const": "geofencing-zones", "title": "Zones de circulation" }
+                          ],
+                          "layout": { "props": { "readonly": true } }
                         },
-                        "properties": {
-                          "id": { "type": "string", "title": "Identifiant" },
-                          "title": { "type": "string", "title": "Titre" }
-                        }
-                      },
-                      "stations": {
-                        "type": "object",
-                        "title": "Stations",
-                        "description": "Un point par station, avec sa disponibilité.",
-                        "required": ["id"],
-                        "layout": {
-                          "getItems": {
-                            "url": "${context.dataFairUrl}/api/v1/datasets?select=id,title&size=50&${context.ownerFilter}&raw=true",
-                            "qSearchParam": "q",
-                            "itemsResults": "data.results",
-                            "itemTitle": "item.title",
-                            "itemKey": "item.id"
+                        "dataset": {
+                          "type": "object",
+                          "title": "Jeu de données existant",
+                          "required": ["id"],
+                          "layout": {
+                            "getItems": {
+                              "url": "${context.dataFairUrl}/api/v1/datasets?select=id,title&size=50&${context.ownerFilter}&raw=true",
+                              "qSearchParam": "q",
+                              "itemsResults": "data.results",
+                              "itemTitle": "item.title",
+                              "itemKey": "item.id"
+                            }
+                          },
+                          "properties": {
+                            "id": { "type": "string", "title": "Identifiant" },
+                            "title": { "type": "string", "title": "Titre" }
                           }
-                        },
-                        "properties": {
-                          "id": { "type": "string", "title": "Identifiant" },
-                          "title": { "type": "string", "title": "Titre" }
-                        }
-                      },
-                      "vehicles": {
-                        "type": "object",
-                        "title": "Véhicules",
-                        "description": "Un point par véhicule disponible, avec son modèle et son tarif.",
-                        "required": ["id"],
-                        "layout": {
-                          "getItems": {
-                            "url": "${context.dataFairUrl}/api/v1/datasets?select=id,title&size=50&${context.ownerFilter}&raw=true",
-                            "qSearchParam": "q",
-                            "itemsResults": "data.results",
-                            "itemTitle": "item.title",
-                            "itemKey": "item.id"
-                          }
-                        },
-                        "properties": {
-                          "id": { "type": "string", "title": "Identifiant" },
-                          "title": { "type": "string", "title": "Titre" }
-                        }
-                      },
-                      "vehicle-types": {
-                        "type": "object",
-                        "title": "Types de véhicules",
-                        "description": "Catalogue des modèles proposés par le service.",
-                        "required": ["id"],
-                        "layout": {
-                          "getItems": {
-                            "url": "${context.dataFairUrl}/api/v1/datasets?select=id,title&size=50&${context.ownerFilter}&raw=true",
-                            "qSearchParam": "q",
-                            "itemsResults": "data.results",
-                            "itemTitle": "item.title",
-                            "itemKey": "item.id"
-                          }
-                        },
-                        "properties": {
-                          "id": { "type": "string", "title": "Identifiant" },
-                          "title": { "type": "string", "title": "Titre" }
-                        }
-                      },
-                      "pricing-plans": {
-                        "type": "object",
-                        "title": "Tarifs",
-                        "description": "Grille tarifaire du service, barèmes rendus lisibles.",
-                        "required": ["id"],
-                        "layout": {
-                          "getItems": {
-                            "url": "${context.dataFairUrl}/api/v1/datasets?select=id,title&size=50&${context.ownerFilter}&raw=true",
-                            "qSearchParam": "q",
-                            "itemsResults": "data.results",
-                            "itemTitle": "item.title",
-                            "itemKey": "item.id"
-                          }
-                        },
-                        "properties": {
-                          "id": { "type": "string", "title": "Identifiant" },
-                          "title": { "type": "string", "title": "Titre" }
-                        }
-                      },
-                      "geofencing-zones": {
-                        "type": "object",
-                        "title": "Zones de circulation",
-                        "description": "Une ligne par zone et par règle de circulation.",
-                        "required": ["id"],
-                        "layout": {
-                          "getItems": {
-                            "url": "${context.dataFairUrl}/api/v1/datasets?select=id,title&size=50&${context.ownerFilter}&raw=true",
-                            "qSearchParam": "q",
-                            "itemsResults": "data.results",
-                            "itemTitle": "item.title",
-                            "itemKey": "item.id"
-                          }
-                        },
-                        "properties": {
-                          "id": { "type": "string", "title": "Identifiant" },
-                          "title": { "type": "string", "title": "Titre" }
                         }
                       }
                     }
