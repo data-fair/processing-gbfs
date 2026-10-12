@@ -10,6 +10,7 @@
  * flight, hence the stop checks around the call rather than inside it.
  */
 import GBFS, { type GbfsFileResult, type GbfsSchemaError, type GbfsValidationResult } from 'gbfs-validator'
+import { SsrfHttpAgent, SsrfHttpsAgent, getSsrfRules } from '@data-fair/lib-node/ssrf.js'
 import type { LogFunctions } from '@data-fair/lib-common-types/processings.js'
 
 export type { GbfsFileResult, GbfsValidationResult }
@@ -40,7 +41,13 @@ export interface ValidationSummary {
 
 /** Run the validator against a discovery URL. */
 export const validateFeed = async (url: string, version?: string): Promise<GbfsValidationResult> => {
-  return await new GBFS(url, { version: version || null }).validation()
+  const validator = new GBFS(url, { version: version || null })
+  // the validator fetches the discovery URL and the feed URLs it declares with its own got client:
+  // give it the public agents of lib-node, they refuse non public addresses (SSRF protection)
+  // (built from ssrf.js: http-agents.js needs the prom-client peer dependency)
+  const rules = getSsrfRules()
+  validator.gotOptions.agent = { http: new SsrfHttpAgent({}, rules), https: new SsrfHttpsAgent({}, rules) }
+  return await validator.validation()
 }
 
 /**

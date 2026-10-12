@@ -61,6 +61,8 @@ declare module 'gbfs-validator' {
 
   export default class GBFS {
     constructor (url: string, options?: GbfsValidatorOptions)
+    /** options of every got request of the validator */
+    gotOptions: { headers?: Record<string, string>, agent?: { http?: import('node:http').Agent, https?: import('node:https').Agent } }
     validation (): Promise<GbfsValidationResult>
   }
 }

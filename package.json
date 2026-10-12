@@ -34,6 +34,7 @@
   },
   "homepage": "https://github.com/data-fair/processing-gbfs#readme",
   "dependencies": {
+    "@data-fair/lib-node": "^2.15.0",
     "form-data": "^4.0.0",
     "fs-extra": "^11.3.0",
     "gbfs-validator": "^1.0.18"
