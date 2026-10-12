@@ -1,6 +1,6 @@
 {
   "name": "@data-fair/processing-gbfs",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Load GBFS data into data-fair datasets",
   "main": "index.ts",
   "type": "module",
