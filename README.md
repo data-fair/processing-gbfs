@@ -113,5 +113,5 @@ export default {
 
 ## Publication
 
-`npm version minor && git push --follow-tags`. Un push sur `main` publie vers le registre
+`npm version minor && git push --follow-tags`. Un push sur `master` publie vers le registre
 de staging, un tag `v*` publie en production.
