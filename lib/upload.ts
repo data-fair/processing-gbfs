@@ -220,6 +220,7 @@ const sendForm = async (axios: AxiosInstance, url: string, formData: FormData) =
 }
 
 export const uploadAttachments = async (axios: AxiosInstance, ref: DatasetRef, files: string[], log: LogFunctions) => {
+  const uploaded: { title: string, file: any }[] = []
   for (const filePath of files) {
     const name = path.basename(filePath)
     await log.info(`Uploading the attachment ${name}`)
@@ -229,25 +230,35 @@ export const uploadAttachments = async (axios: AxiosInstance, ref: DatasetRef, f
         formData.append('attachment', fs.createReadStream(filePath), { filename: name })
         return sendForm(axios, `api/v1/datasets/${ref.id}/metadata-attachments`, formData)
       }, log)
-
-      const dataset = (await axios.get(`api/v1/datasets/${ref.id}`)).data
-      const attachments = dataset.attachments ?? []
-      const index = attachments.findIndex((attachment: any) => attachment.name === response.data.name)
-      const previous = index >= 0 ? attachments.splice(index, 1).pop() : {}
-      attachments.push({
-        ...previous,
-        type: 'file',
-        name: response.data.name,
-        size: response.data.size,
-        mimetype: response.data.mimetype,
-        updatedAt: response.data.updatedAt,
-        title: name
-      })
-      await dfRetry(() => axios.patch(`api/v1/datasets/${ref.id}`, { attachments }), log)
+      uploaded.push({ title: name, file: response.data })
     } catch (err: any) {
       throw new Error(`Failed to upload the attachment ${name}: ${describeError(err)}`)
     }
   }
+  if (!uploaded.length) return
+
+  // the attachments list is read and written once for all the files, not once per file
+  try {
+    const dataset = (await axios.get(`api/v1/datasets/${ref.id}`)).data
+    const attachments = dataset.attachments ?? []
+    for (const { title, file } of uploaded) {
+      const index = attachments.findIndex((attachment: any) => attachment.name === file.name)
+      const previous = index >= 0 ? attachments.splice(index, 1).pop() : {}
+      attachments.push({
+        ...previous,
+        type: 'file',
+        name: file.name,
+        size: file.size,
+        mimetype: file.mimetype,
+        updatedAt: file.updatedAt,
+        title
+      })
+    }
+    await dfRetry(() => axios.patch(`api/v1/datasets/${ref.id}`, { attachments }), log)
+  } catch (err: any) {
+    throw new Error(`Failed to update the attachments list of "${ref.title}": ${describeError(err)}`)
+  }
+  await log.info(`${uploaded.length} attachment(s) uploaded to "${ref.title}"`)
 }
 
 /**
