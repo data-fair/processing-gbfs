@@ -15,9 +15,30 @@ export interface DatasetRef {
 /** Lines are sent in batches so a service with many vehicles does not build one huge request. */
 const BATCH_SIZE = 1000
 
+/**
+ * The worker's axios retries GET/PUT/DELETE on 429/5xx but never POST/PATCH: data-fair
+ * answers 429 when it is overloaded, and a write refused that way was not applied, so
+ * it is safe to send again. The request is rebuilt by `fn` on each attempt (a form
+ * body is a stream that can only be read once).
+ */
+export const dfRetry = async <T>(fn: () => Promise<T>, log: LogFunctions, retries = 3, delayMs = 10000): Promise<T> => {
+  let attempt = 0
+  while (true) {
+    try {
+      return await fn()
+    } catch (err: any) {
+      const status = err?.status ?? err?.response?.status
+      if (status !== 429 || attempt >= retries) throw err
+      attempt++
+      await log.warning(`Data Fair answered 429 (too many requests), retrying in ${delayMs / 1000} s (attempt ${attempt}/${retries})`)
+      await new Promise(resolve => setTimeout(resolve, delayMs))
+    }
+  }
+}
+
 /** Axios hides the reason given by data-fair inside response.data; JSON.stringify(err) drops it. */
 export const describeError = (err: any) => {
-  const detail = err.response?.data
+  const detail = err.data ?? err.response?.data
   const body = typeof detail === 'string' ? detail : detail ? JSON.stringify(detail) : ''
   return body ? `${err.message} : ${body}` : err.message
 }
@@ -38,12 +59,12 @@ export const createMetadataDataset = async (
 ): Promise<DatasetRef> => {
   // the description is set here and never again: on later runs it belongs to whoever
   // publishes the data, and rewriting it would silently destroy their edits
-  const dataset = (await axios.post('api/v1/datasets', {
+  const dataset = (await dfRetry(() => axios.post('api/v1/datasets', {
     title,
     description,
     isMetaOnly: true,
     extras: { processingId }
-  })).data
+  }), log)).data
   await log.info(`Jeu de données créé : ${dataset.title} (${dataset.id})`)
   return { key: 'system', id: dataset.id, title: dataset.title }
 }
@@ -57,13 +78,13 @@ export const createDataDataset = async (
   processingId: string,
   log: LogFunctions
 ): Promise<DatasetRef> => {
-  const dataset = (await axios.post('api/v1/datasets', {
+  const dataset = (await dfRetry(() => axios.post('api/v1/datasets', {
     title,
     isRest: true,
     schema,
     origin,
     extras: { processingId }
-  })).data
+  }), log)).data
   await log.info(`Jeu de données créé : ${dataset.title} (${dataset.id})`)
   return { key, id: dataset.id, title: dataset.title }
 }
@@ -72,7 +93,7 @@ export const assertDatasetExists = async (axios: AxiosInstance, ref: DatasetRef)
   try {
     return (await axios.get(`api/v1/datasets/${ref.id}`)).data
   } catch (err: any) {
-    if (err.response?.status === 404) {
+    if ((err.status ?? err.response?.status) === 404) {
       throw new Error(`Le jeu de données "${RESOURCE_TITLES[ref.key]}" est introuvable (id="${ref.id}"). Corrigez la configuration : il ne sera pas recréé automatiquement, pour ne pas produire de doublon.`)
     }
     throw new Error(describeError(err))
@@ -136,7 +157,7 @@ export const refreshSchema = async (
   if (concepts.length) await log.info(`Concepts posés sur "${ref.title}" : ${concepts.join(', ')}`)
   await log.info(`Mise à jour du schéma de "${ref.title}"`)
   try {
-    await axios.patch(`api/v1/datasets/${ref.id}`, { schema: merged })
+    await dfRetry(() => axios.patch(`api/v1/datasets/${ref.id}`, { schema: merged }), log)
   } catch (err: any) {
     throw new Error(`Échec de la mise à jour du schéma de "${ref.title}" : ${describeError(err)}`)
   }
@@ -166,7 +187,7 @@ export const replaceLines = async (
     const url = `api/v1/datasets/${ref.id}/_bulk_lines${index === 0 ? '?drop=true' : ''}`
     let summary: any
     try {
-      summary = (await axios.post(url, batch)).data
+      summary = (await dfRetry(() => axios.post(url, batch), log)).data
     } catch (err: any) {
       throw new Error(`Échec de l'envoi des données vers "${ref.title}" : ${describeError(err)}`)
     }
@@ -203,9 +224,11 @@ export const uploadAttachments = async (axios: AxiosInstance, ref: DatasetRef, f
     const name = path.basename(filePath)
     await log.info(`Chargement de la pièce jointe ${name}`)
     try {
-      const formData = new FormData()
-      formData.append('attachment', fs.createReadStream(filePath), { filename: name })
-      const response = await sendForm(axios, `api/v1/datasets/${ref.id}/metadata-attachments`, formData)
+      const response = await dfRetry(() => {
+        const formData = new FormData()
+        formData.append('attachment', fs.createReadStream(filePath), { filename: name })
+        return sendForm(axios, `api/v1/datasets/${ref.id}/metadata-attachments`, formData)
+      }, log)
 
       const dataset = (await axios.get(`api/v1/datasets/${ref.id}`)).data
       const attachments = dataset.attachments ?? []
@@ -220,7 +243,7 @@ export const uploadAttachments = async (axios: AxiosInstance, ref: DatasetRef, f
         updatedAt: response.data.updatedAt,
         title: name
       })
-      await axios.patch(`api/v1/datasets/${ref.id}`, { attachments })
+      await dfRetry(() => axios.patch(`api/v1/datasets/${ref.id}`, { attachments }), log)
     } catch (err: any) {
       throw new Error(`Échec du chargement de la pièce jointe ${name} : ${describeError(err)}`)
     }
@@ -245,7 +268,7 @@ export const syncRelatedDatasets = async (axios: AxiosInstance, refs: DatasetRef
       const related = [...foreign, ...siblings]
       const current = dataset.relatedDatasets ?? []
       if (JSON.stringify(current) === JSON.stringify(related)) continue
-      await axios.patch(`api/v1/datasets/${ref.id}`, { relatedDatasets: related })
+      await dfRetry(() => axios.patch(`api/v1/datasets/${ref.id}`, { relatedDatasets: related }), log)
     } catch (err: any) {
       throw new Error(`Échec de la mise à jour des jeux liés de "${ref.title}" : ${describeError(err)}`)
     }

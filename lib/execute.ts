@@ -107,7 +107,8 @@ const writeAttachments = async (
   await fs.ensureDir(dir)
   const files: string[] = []
   const write = async (name: string, content: any) => {
-    const file = path.join(dir, `${name}.json`)
+    // feed names come from the remote gbfs.json: never let one escape the directory
+    const file = path.join(dir, `${path.basename(name)}.json`)
     await fs.writeFile(file, JSON.stringify(content, null, 2))
     files.push(file)
   }

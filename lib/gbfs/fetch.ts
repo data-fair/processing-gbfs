@@ -19,8 +19,9 @@ export const fetchJson = async (url: string, axios: AxiosInstance, source: strin
   try {
     data = (await axios.get(url, REQUEST_OPTIONS)).data
   } catch (err: any) {
-    if (err.response?.status === 404) throw new Error(`Le flux ${source} est introuvable (404) : ${url}`)
-    const status = err.response?.status ? ` (HTTP ${err.response.status})` : ''
+    const httpStatus = err.status ?? err.response?.status
+    if (httpStatus === 404) throw new Error(`Le flux ${source} est introuvable (404) : ${url}`)
+    const status = httpStatus ? ` (HTTP ${httpStatus})` : ''
     throw new Error(`Échec de la récupération du flux ${source}${status} : ${err.message}`)
   }
   // a server answering with the wrong content-type leaves axios with a raw string
