@@ -20,16 +20,16 @@ export const fetchJson = async (url: string, axios: AxiosInstance, source: strin
     data = (await axios.get(url, REQUEST_OPTIONS)).data
   } catch (err: any) {
     const httpStatus = err.status ?? err.response?.status
-    if (httpStatus === 404) throw new Error(`Le flux ${source} est introuvable (404) : ${url}`)
+    if (httpStatus === 404) throw new Error(`The ${source} feed was not found (HTTP 404): ${url}`)
     const status = httpStatus ? ` (HTTP ${httpStatus})` : ''
-    throw new Error(`Échec de la récupération du flux ${source}${status} : ${err.message}`)
+    throw new Error(`Failed to fetch the ${source} feed${status}: ${err.message} (${url})`)
   }
   // a server answering with the wrong content-type leaves axios with a raw string
   if (typeof data === 'string') {
     try {
       data = JSON.parse(data)
     } catch {
-      throw new Error(`Le flux ${source} n'est pas du JSON valide : ${url}`)
+      throw new Error(`The ${source} feed is not valid JSON: ${url}`)
     }
   }
   return data
@@ -44,18 +44,18 @@ export const discover = async (
   axios: AxiosInstance,
   log: LogFunctions
 ): Promise<GbfsService> => {
-  await log.step('Découverte du service GBFS')
-  await log.info(`Fichier de découverte : ${url}`)
+  await log.step('GBFS service discovery')
+  await log.info(`Discovery file: ${url}`)
 
   const raw = await fetchJson(url, axios, 'gbfs.json')
   const version = readDocument(raw, 'gbfs.json').version
   const feedUrls = discoverFeeds(raw, language)
 
   const names = Object.keys(feedUrls).sort()
-  if (!names.length) throw new Error('Le fichier gbfs.json ne déclare aucun flux exploitable.')
-  await log.info(`Version GBFS ${version}, flux publiés : ${names.join(', ')}`)
+  if (!names.length) throw new Error('The gbfs.json file declares no usable feed')
+  await log.info(`GBFS version ${version}, ${names.length} published feed(s): ${names.join(', ')}`)
   if (Number(version.split('.')[0]) > 3) {
-    await log.warning(`La version ${version} est plus récente que celles connues du traitement (2.x et 3.0) : les données peuvent être incomplètes.`)
+    await log.warning(`Version ${version} is newer than the ones this processing knows (2.x and 3.0): the data may be incomplete`)
   }
 
   return { version, feedUrls, discovery: raw }
@@ -77,7 +77,7 @@ export const loadFeeds = async (
     const url = service.feedUrls[name]
     if (!url) continue
     documents[name] = readDocument(await fetchJson(url, axios, name), name)
-    await log.debug(`Flux ${name} chargé (généré le ${documents[name].lastUpdated ?? 'date inconnue'})`)
+    await log.debug(`Feed ${name} loaded (generated at ${documents[name].lastUpdated ?? 'unknown date'})`)
   }
   return documents
 }

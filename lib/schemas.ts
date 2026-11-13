@@ -18,6 +18,7 @@ export type DataResourceKey = Exclude<ResourceKey, 'system'>
 /** Every role, in the order the datasets are produced: the metadata one carries the others. */
 export const RESOURCE_KEYS: readonly ResourceKey[] = ['system', 'stations', 'vehicles', 'vehicle-types', 'pricing-plans', 'geofencing-zones']
 
+/** Appended to the base title of the created datasets: part of the output, stays French. */
 export const RESOURCE_TITLES: Record<ResourceKey, string> = {
   system: 'métadonnées',
   stations: 'stations',
@@ -25,6 +26,16 @@ export const RESOURCE_TITLES: Record<ResourceKey, string> = {
   'vehicle-types': 'types de véhicules',
   'pricing-plans': 'tarifs',
   'geofencing-zones': 'zones de circulation'
+}
+
+/** How the logs name each role. */
+export const RESOURCE_LOG_NAMES: Record<ResourceKey, string> = {
+  system: 'metadata',
+  stations: 'stations',
+  vehicles: 'vehicles',
+  'vehicle-types': 'vehicle types',
+  'pricing-plans': 'pricing plans',
+  'geofencing-zones': 'geofencing zones'
 }
 
 /**

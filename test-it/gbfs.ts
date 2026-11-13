@@ -111,8 +111,8 @@ describe('normalisation des versions GBFS', () => {
   })
 
   it('rejette un document sans data', () => {
-    assert.throws(() => readDocument({ version: '3.0' }, 'gbfs.json'), /ne contient pas de propriété "data"/)
-    assert.throws(() => discoverFeeds({ version: '3.0' }), /ne contient pas de propriété "data"/)
+    assert.throws(() => readDocument({ version: '3.0' }, 'gbfs.json'), /has no "data" property/)
+    assert.throws(() => discoverFeeds({ version: '3.0' }), /has no "data" property/)
   })
 
   it('lit les véhicules sous leurs deux noms', () => {

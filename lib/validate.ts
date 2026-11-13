@@ -95,26 +95,26 @@ export const logValidation = async (
   const validator = summary.validatorVersion ? ` (gbfs-validator ${summary.validatorVersion})` : ''
 
   if (summary.versionUnimplemented) {
-    await log.warning(`Le validateur ne connaît pas la version annoncée par ce service${validator} : la validation est passée.`)
+    await log.warning(`The validator does not know the version announced by this service${validator}: validation skipped`)
     return
   }
 
   if (summary.detectedVersion && summary.detectedVersion !== summary.validatedVersion) {
-    await log.info(`Version détectée ${summary.detectedVersion}, validée contre la ${summary.validatedVersion}${validator}.`)
+    await log.info(`Detected version ${summary.detectedVersion}, validated against ${summary.validatedVersion}${validator}`)
   } else {
-    await log.info(`Version GBFS ${summary.detectedVersion ?? '?'}${validator}`)
+    await log.info(`GBFS version ${summary.detectedVersion ?? '?'}${validator}`)
   }
 
   const missing = summary.files.filter(file => !file.exists)
   if (missing.length) {
-    await log.info(`Fichiers absents : ${missing.map(file => `${file.file}${file.required ? ' (obligatoire)' : ''}`).join(', ')}`)
+    await log.info(`Missing files: ${missing.map(file => `${file.file}${file.required ? ' (mandatory)' : ''}`).join(', ')}`)
   }
 
   if (!summary.errorsCount) {
-    await log.info('Aucune anomalie détectée.')
+    await log.info('No issue found')
     return
   }
-  await log.info(`Anomalies détectées : ${summary.errorsCount} sur ${summary.files.filter(file => file.errorsCount).length} fichier(s)`)
+  await log.info(`${summary.errorsCount} issue(s) found in ${summary.files.filter(file => file.errorsCount).length} file(s)`)
 
   // mandatory files first, then the noisiest: what a publisher has to fix comes on top
   const inError = (result.files ?? [])
@@ -122,15 +122,15 @@ export const logValidation = async (
     .sort((a, b) => (Number(!!b.required) - Number(!!a.required)) || ((b.errorsCount ?? 0) - (a.errorsCount ?? 0)))
 
   for (const file of inError) {
-    const label = `${file.file ?? '?'}${file.required ? ' (obligatoire)' : ''}`
-    await log.info(`${label} : ${file.errorsCount} anomalie(s)`)
+    const label = `${file.file ?? '?'}${file.required ? ' (mandatory)' : ''}`
+    await log.info(`${label}: ${file.errorsCount} issue(s)`)
     const errors = errorsOf(file)
     for (const { error, lang } of errors.slice(0, maxIssues)) {
       const where = [lang && `[${lang}]`, error.instancePath || undefined].filter(Boolean).join(' ')
-      await log.debug(`${file.file ?? '?'}${where ? ` ${where}` : ''} : ${error.message ?? 'anomalie'}`)
+      await log.debug(`${file.file ?? '?'}${where ? ` ${where}` : ''}: ${error.message ?? 'issue'}`)
     }
     if (errors.length > maxIssues) {
-      await log.debug(`${file.file ?? '?'} : ${errors.length - maxIssues} anomalie(s) supplémentaires non détaillées.`)
+      await log.debug(`${file.file ?? '?'}: ${errors.length - maxIssues} more issue(s) not detailed`)
     }
   }
 }

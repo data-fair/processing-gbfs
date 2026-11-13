@@ -4,7 +4,7 @@ import path from 'node:path'
 import util from 'node:util'
 import fs from 'fs-extra'
 import FormData from 'form-data'
-import { REFRESHABLE_PROPS, RESOURCE_TITLES, type DataResourceKey, type ResourceKey, type SchemaProperty } from './schemas.ts'
+import { REFRESHABLE_PROPS, RESOURCE_LOG_NAMES, RESOURCE_TITLES, type DataResourceKey, type ResourceKey, type SchemaProperty } from './schemas.ts'
 
 export interface DatasetRef {
   key: ResourceKey
@@ -40,7 +40,7 @@ export const dfRetry = async <T>(fn: () => Promise<T>, log: LogFunctions, retrie
 export const describeError = (err: any) => {
   const detail = err.data ?? err.response?.data
   const body = typeof detail === 'string' ? detail : detail ? JSON.stringify(detail) : ''
-  return body ? `${err.message} : ${body}` : err.message
+  return body ? `${err.message}: ${body}` : err.message
 }
 
 /**
@@ -65,7 +65,7 @@ export const createMetadataDataset = async (
     isMetaOnly: true,
     extras: { processingId }
   }), log)).data
-  await log.info(`Jeu de données créé : ${dataset.title} (${dataset.id})`)
+  await log.info(`Dataset created: ${dataset.title} (${dataset.id})`)
   return { key: 'system', id: dataset.id, title: dataset.title }
 }
 
@@ -85,7 +85,7 @@ export const createDataDataset = async (
     origin,
     extras: { processingId }
   }), log)).data
-  await log.info(`Jeu de données créé : ${dataset.title} (${dataset.id})`)
+  await log.info(`Dataset created: ${dataset.title} (${dataset.id})`)
   return { key, id: dataset.id, title: dataset.title }
 }
 
@@ -94,7 +94,7 @@ export const assertDatasetExists = async (axios: AxiosInstance, ref: DatasetRef)
     return (await axios.get(`api/v1/datasets/${ref.id}`)).data
   } catch (err: any) {
     if ((err.status ?? err.response?.status) === 404) {
-      throw new Error(`Le jeu de données "${RESOURCE_TITLES[ref.key]}" est introuvable (id="${ref.id}"). Corrigez la configuration : il ne sera pas recréé automatiquement, pour ne pas produire de doublon.`)
+      throw new Error(`The ${RESOURCE_LOG_NAMES[ref.key]} dataset was not found (id="${ref.id}"). Fix the configuration: it is not recreated automatically, to avoid producing a duplicate`)
     }
     throw new Error(describeError(err))
   }
@@ -148,18 +148,18 @@ export const refreshSchema = async (
   if (added.length) {
     merged.push(...added)
     changed = true
-    await log.info(`Nouvelles colonnes ajoutées à "${ref.title}" : ${added.map(property => property.key).join(', ')}`)
+    await log.info(`${added.length} new column(s) added to "${ref.title}": ${added.map(property => property.key).join(', ')}`)
   }
 
   if (!changed) return
   // adding a concept is not an innocuous schema change for data-fair: it re-finalizes
   // the dataset. It only happens on the run that introduces it.
-  if (concepts.length) await log.info(`Concepts posés sur "${ref.title}" : ${concepts.join(', ')}`)
-  await log.info(`Mise à jour du schéma de "${ref.title}"`)
+  if (concepts.length) await log.info(`Concepts set on "${ref.title}": ${concepts.join(', ')}`)
+  await log.info(`Updating the schema of "${ref.title}"`)
   try {
     await dfRetry(() => axios.patch(`api/v1/datasets/${ref.id}`, { schema: merged }), log)
   } catch (err: any) {
-    throw new Error(`Échec de la mise à jour du schéma de "${ref.title}" : ${describeError(err)}`)
+    throw new Error(`Failed to update the schema of "${ref.title}": ${describeError(err)}`)
   }
 }
 
@@ -177,7 +177,7 @@ export const replaceLines = async (
   rows: Record<string, any>[],
   log: LogFunctions
 ) => {
-  await log.info(`Mise à jour de "${ref.title}" : ${rows.length} lignes`)
+  await log.info(`Updating "${ref.title}": ${rows.length} line(s)`)
   const batches: Record<string, any>[][] = []
   for (let i = 0; i < rows.length; i += BATCH_SIZE) batches.push(rows.slice(i, i + BATCH_SIZE))
   if (!batches.length) batches.push([])
@@ -189,19 +189,19 @@ export const replaceLines = async (
     try {
       summary = (await dfRetry(() => axios.post(url, batch), log)).data
     } catch (err: any) {
-      throw new Error(`Échec de l'envoi des données vers "${ref.title}" : ${describeError(err)}`)
+      throw new Error(`Failed to send the lines to "${ref.title}": ${describeError(err)}`)
     }
 
     // _bulk_lines decides its status code when it flushes its first batch, so a failure
     // happening later still answers 200: the summary is the only reliable signal
     for (const error of (summary?.errors ?? []).slice(0, 10)) {
-      await log.error(`ligne ${error.line} : ${error.error}`)
+      await log.error(`Line ${error.line}: ${error.error}`)
     }
     if (summary?.cancelled) {
-      throw new Error(`Envoi vers "${ref.title}" annulé par Data Fair (${summary.nbErrors} lignes en erreur).`)
+      throw new Error(`Data Fair cancelled the upload to "${ref.title}" (${summary.nbErrors} line(s) in error)`)
     }
     if (summary?.nbErrors) {
-      throw new Error(`${summary.nbErrors} lignes en erreur lors de l'envoi vers "${ref.title}".`)
+      throw new Error(`${summary.nbErrors} line(s) in error while sending to "${ref.title}"`)
     }
   }
 }
@@ -222,7 +222,7 @@ const sendForm = async (axios: AxiosInstance, url: string, formData: FormData) =
 export const uploadAttachments = async (axios: AxiosInstance, ref: DatasetRef, files: string[], log: LogFunctions) => {
   for (const filePath of files) {
     const name = path.basename(filePath)
-    await log.info(`Chargement de la pièce jointe ${name}`)
+    await log.info(`Uploading the attachment ${name}`)
     try {
       const response = await dfRetry(() => {
         const formData = new FormData()
@@ -245,7 +245,7 @@ export const uploadAttachments = async (axios: AxiosInstance, ref: DatasetRef, f
       })
       await dfRetry(() => axios.patch(`api/v1/datasets/${ref.id}`, { attachments }), log)
     } catch (err: any) {
-      throw new Error(`Échec du chargement de la pièce jointe ${name} : ${describeError(err)}`)
+      throw new Error(`Failed to upload the attachment ${name}: ${describeError(err)}`)
     }
   }
 }
@@ -270,8 +270,8 @@ export const syncRelatedDatasets = async (axios: AxiosInstance, refs: DatasetRef
       if (JSON.stringify(current) === JSON.stringify(related)) continue
       await dfRetry(() => axios.patch(`api/v1/datasets/${ref.id}`, { relatedDatasets: related }), log)
     } catch (err: any) {
-      throw new Error(`Échec de la mise à jour des jeux liés de "${ref.title}" : ${describeError(err)}`)
+      throw new Error(`Failed to update the related datasets of "${ref.title}": ${describeError(err)}`)
     }
   }
-  await log.info(`Jeux liés mis à jour sur ${refs.length} jeux de données`)
+  await log.info(`Related datasets updated on ${refs.length} datasets`)
 }

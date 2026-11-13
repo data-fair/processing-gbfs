@@ -63,6 +63,6 @@ export const buildPricingPlans = async (
     })
   }
 
-  if (withoutId) await log.warning(`${withoutId} tarifs sans identifiant ont été ignorés.`)
+  if (withoutId) await log.warning(`${withoutId} pricing plan(s) without an identifier skipped`)
   return rows
 }

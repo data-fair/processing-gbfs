@@ -42,6 +42,6 @@ export const buildVehicleTypes = async (
     })
   }
 
-  if (withoutId) await log.warning(`${withoutId} types de véhicules sans identifiant ont été ignorés.`)
+  if (withoutId) await log.warning(`${withoutId} vehicle type(s) without an identifier skipped`)
   return rows
 }

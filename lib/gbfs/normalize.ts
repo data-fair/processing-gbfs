@@ -89,10 +89,10 @@ export const geometry = (value: unknown): string | undefined => {
 
 export const readDocument = <T = any>(raw: any, source: string): GbfsDocument<T> => {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
-    throw new Error(`Le flux ${source} ne contient pas un objet JSON.`)
+    throw new Error(`The ${source} feed does not contain a JSON object`)
   }
   if (raw.data === undefined || raw.data === null) {
-    throw new Error(`Le flux ${source} ne contient pas de propriété "data".`)
+    throw new Error(`The ${source} feed has no "data" property`)
   }
   return {
     lastUpdated: isoInstant(raw.last_updated),
@@ -113,7 +113,7 @@ export const readDocument = <T = any>(raw: any, source: string): GbfsDocument<T>
 export const discoverFeeds = (raw: any, language?: string): Record<string, string> => {
   const data = raw?.data
   if (!data || typeof data !== 'object') {
-    throw new Error('Le fichier gbfs.json ne contient pas de propriété "data". Vérifiez que l\'URL pointe bien vers le fichier de découverte du service.')
+    throw new Error('The gbfs.json file has no "data" property. Check that the URL points to the discovery file of the service')
   }
 
   let feeds = data.feeds
@@ -124,7 +124,7 @@ export const discoverFeeds = (raw: any, language?: string): Record<string, strin
       : Object.values(data).map((entry: any) => entry?.feeds).find(Array.isArray)
   }
   if (!Array.isArray(feeds)) {
-    throw new Error('Le fichier gbfs.json ne déclare aucun flux. Vérifiez que l\'URL pointe bien vers le fichier de découverte du service.')
+    throw new Error('The gbfs.json file declares no feed. Check that the URL points to the discovery file of the service')
   }
 
   const urls: Record<string, string> = {}

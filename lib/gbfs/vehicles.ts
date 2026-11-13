@@ -72,9 +72,9 @@ export const buildVehicles = async (
     })
   }
 
-  if (withoutId) await log.warning(`${withoutId} véhicules sans identifiant ont été ignorés.`)
-  if (withoutPosition) await log.info(`${withoutPosition} véhicules sont publiés sans position : ils sont stationnés dans une station.`)
-  if (!documents.vehicle_types) await log.warning("Le flux vehicle_types n'est pas publié par le service : les véhicules sont produits sans modèle ni motorisation.")
+  if (withoutId) await log.warning(`${withoutId} vehicle(s) without an identifier skipped`)
+  if (withoutPosition) await log.info(`${withoutPosition} vehicle(s) published without a position: they are parked at a station`)
+  if (!documents.vehicle_types) await log.warning('The service does not publish the vehicle_types feed: vehicles are produced without model nor propulsion')
 
   return rows
 }

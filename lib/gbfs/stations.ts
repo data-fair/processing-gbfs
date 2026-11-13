@@ -75,9 +75,9 @@ export const buildStations = async (
     })
   }
 
-  if (withoutId) await log.warning(`${withoutId} stations sans identifiant ont été ignorées.`)
-  if (withoutStatus) await log.warning(`${withoutStatus} stations sont publiées sans disponibilité : elles sont absentes de station_status.`)
-  if (!documents.station_status) await log.warning("Le flux station_status n'est pas publié par le service : les stations sont produites sans disponibilité.")
+  if (withoutId) await log.warning(`${withoutId} station(s) without an identifier skipped`)
+  if (withoutStatus) await log.warning(`${withoutStatus} station(s) published without availability: missing from station_status`)
+  if (!documents.station_status) await log.warning('The service does not publish the station_status feed: stations are produced without availability')
 
   return rows
 }

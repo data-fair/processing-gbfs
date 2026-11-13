@@ -53,8 +53,8 @@ export const buildGeofencingZones = async (
     })
   })
 
-  if (withoutGeometry) await log.warning(`${withoutGeometry} zones sans géométrie ont été ignorées.`)
-  if (!rows.length) await log.warning('Le service ne publie aucune zone de circulation : le jeu de données est produit vide.')
+  if (withoutGeometry) await log.warning(`${withoutGeometry} geofencing zone(s) without a geometry skipped`)
+  if (!rows.length) await log.warning('The service publishes no geofencing zone: the dataset is produced empty')
 
   return rows
 }

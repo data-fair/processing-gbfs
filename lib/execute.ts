@@ -12,7 +12,7 @@ import { buildPricingPlans } from './gbfs/pricing-plans.ts'
 import { buildGeofencingZones } from './gbfs/geofencing-zones.ts'
 import { baseTitle, buildSystemDescription } from './gbfs/system.ts'
 import { logValidation, summarize, validateFeed } from './validate.ts'
-import { RESOURCE_FEEDS, RESOURCE_KEYS, RESOURCE_TITLES, buildSchemas, type DataResourceKey, type ResourceKey } from './schemas.ts'
+import { RESOURCE_FEEDS, RESOURCE_KEYS, RESOURCE_LOG_NAMES, buildSchemas, type DataResourceKey, type ResourceKey } from './schemas.ts'
 import {
   assertDatasetExists,
   createDataDataset,
@@ -30,7 +30,7 @@ let shouldBeStopped = false
 export const stop = async () => { shouldBeStopped = true }
 
 const throwIfStopped = () => {
-  if (shouldBeStopped) throw new Error('Traitement interrompu.')
+  if (shouldBeStopped) throw new Error('Processing interrupted')
 }
 
 /** Kept in RESOURCE_KEYS order whatever order the form wrote the selection in. */
@@ -132,7 +132,7 @@ export const run = async (context: ProcessingContext<ProcessingConfig>) => {
   // validate mode: the summary is the whole result, nothing else is produced.
   // import mode: the validation is optional and, with failOnError, blocks the import.
   if (mode === 'validate' || config.validationEnabled !== false) {
-    await log.step('Validation GBFS')
+    await log.step('GBFS validation')
     // gbfs-validator offers no abort signal, so an interruption is only honoured
     // on either side of the call; it takes about a second on a typical service
     const result = await validateFeed(config.url)
@@ -143,13 +143,13 @@ export const run = async (context: ProcessingContext<ProcessingConfig>) => {
 
     if (mode === 'validate') {
       if (summary.blockingFiles.length) {
-        throw new Error(`Flux GBFS inexploitable : ${summary.blockingFiles.join(', ')}.`)
+        throw new Error(`The GBFS feed is not usable, blocking issues in: ${summary.blockingFiles.join(', ')}`)
       }
-      await log.info('Validation terminée.')
+      await log.info('Validation done')
       return
     }
     if (config.failOnError && summary.blockingFiles.length) {
-      throw new Error(`Le flux contient des anomalies bloquantes sur ${summary.blockingFiles.join(', ')} : import interrompu (option « échouer sur anomalies » active).`)
+      throw new Error(`The feed has blocking issues in ${summary.blockingFiles.join(', ')}: import stopped (the "fail if the feed contains issues" option is on)`)
     }
   }
 
@@ -158,8 +158,8 @@ export const run = async (context: ProcessingContext<ProcessingConfig>) => {
   const requested = create ? wantedFromResources(config.resources) : configuredRefs.map(ref => ref.key)
   if (!requested.length) {
     throw new Error(create
-      ? 'Aucun jeu de données à produire : sélectionnez au moins une donnée.'
-      : 'Aucun jeu de données à mettre à jour : renseignez au moins un rôle.')
+      ? 'No dataset to produce: select at least one'
+      : 'No dataset to update: fill in at least one line')
   }
 
   const service = await discover(config.url, language, axios, log)
@@ -173,12 +173,12 @@ export const run = async (context: ProcessingContext<ProcessingConfig>) => {
       wanted.push(key)
       continue
     }
-    await log.warning(`Le flux ${RESOURCE_FEEDS[key].required} n'est pas publié par le service : les ${RESOURCE_TITLES[key]} ne sont pas produites.`)
+    await log.warning(`The service does not publish the ${RESOURCE_FEEDS[key].required} feed: the ${RESOURCE_LOG_NAMES[key]} dataset is not produced`)
   }
-  if (!wanted.length) throw new Error('Aucun des jeux de données demandés ne peut être produit à partir des flux publiés par ce service.')
+  if (!wanted.length) throw new Error('None of the requested datasets can be produced from the feeds this service publishes')
 
-  await log.step('Lecture des flux')
-  await log.info(`Jeux de données à produire : ${wanted.map(key => RESOURCE_TITLES[key]).join(', ')}`)
+  await log.step('Reading the feeds')
+  await log.info(`Datasets to produce: ${wanted.map(key => RESOURCE_LOG_NAMES[key]).join(', ')}`)
   const documents = await loadFeeds(service, feedsFor(wanted, Object.keys(service.feedUrls)), axios, log)
   throwIfStopped()
 
@@ -188,7 +188,7 @@ export const run = async (context: ProcessingContext<ProcessingConfig>) => {
   for (const key of dataKeys) {
     throwIfStopped()
     const rows = await buildRows(key, documents, reference, language, log)
-    await log.info(`${RESOURCE_TITLES[key]} : ${rows.length} lignes`)
+    await log.info(`${RESOURCE_LOG_NAMES[key]}: ${rows.length} line(s)`)
     produced.set(key, rows)
   }
   throwIfStopped()
@@ -197,9 +197,9 @@ export const run = async (context: ProcessingContext<ProcessingConfig>) => {
   const refs: DatasetRef[] = []
 
   if (create) {
-    await log.step('Création des jeux de données')
+    await log.step('Creating the datasets')
     const base = baseTitle(config.datasetTitle, documents, language)
-    await log.info(`Titre de base des jeux de données : ${base}`)
+    await log.info(`Base title of the datasets: ${base}`)
     for (const key of wanted) {
       throwIfStopped()
       const title = datasetTitle(base, key)
@@ -214,7 +214,7 @@ export const run = async (context: ProcessingContext<ProcessingConfig>) => {
     // a second family of datasets instead of updating this one
     await patchConfig({ datasetMode: 'update', datasets: datasetsFromRefs(refs) } as any)
   } else {
-    await log.step('Vérification des jeux de données')
+    await log.step('Checking the datasets')
     for (const ref of configuredRefs) {
       throwIfStopped()
       const live = await assertDatasetExists(axios, ref)
@@ -227,7 +227,7 @@ export const run = async (context: ProcessingContext<ProcessingConfig>) => {
   }
   throwIfStopped()
 
-  await log.step('Envoi des données')
+  await log.step('Sending the data')
   for (const ref of refs) {
     throwIfStopped()
     const rows = ref.key === 'system' ? undefined : produced.get(ref.key)
@@ -237,15 +237,15 @@ export const run = async (context: ProcessingContext<ProcessingConfig>) => {
 
   const systemRef = refs.find(ref => ref.key === 'system')
   if (systemRef) {
-    await log.step('Pièces jointes')
+    await log.step('Attachments')
     const files = await writeAttachments(service.discovery, documents, tmpDir)
     await uploadAttachments(axios, systemRef, files, log)
   }
   throwIfStopped()
 
-  await log.step('Jeux liés')
+  await log.step('Related datasets')
   await syncRelatedDatasets(axios, refs, log)
 
   // no cleanup here: the worker creates tmpDir per run and removes it in a finally
-  await log.info('Traitement terminé.')
+  await log.info('Processing done')
 }
