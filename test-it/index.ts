@@ -33,9 +33,10 @@ describe('traitement GBFS', () => {
   it('expose un schéma de configuration', () => {
     assert.equal(processingSchema.type, 'object')
     const tabs = processingSchema.allOf.map((tab: any) => tab.title)
-    assert.deepEqual(tabs, ['Source', 'Traitement', 'Jeux de données'])
+    assert.deepEqual(tabs, ['Source', 'Processing', 'Datasets'])
+    assert.deepEqual(processingSchema.allOf.map((tab: any) => tab['x-i18n-title']?.fr ?? tab.title), ['Source', 'Traitement', 'Jeux de données'])
     // no vjsf 2 keyword left: they are silently ignored by the renderer
-    assert.ok(!JSON.stringify(processingSchema).includes('"x-'))
+    assert.ok(!JSON.stringify(processingSchema).replace(/"x-i18n-/g, '').includes('"x-'))
   })
 
   it('déclare les mêmes rôles à la création et à la mise à jour', () => {
