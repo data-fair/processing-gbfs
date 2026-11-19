@@ -170,6 +170,14 @@
                         { "const": "geofencing-zones", "title": "Geofencing zones", "x-i18n-title": { "fr": "Zones de circulation" } }
                       ]
                     }
+                  },
+                  "groupDatasets": {
+                    "type": "boolean",
+                    "default": true,
+                    "title": "Group the datasets under the metadata dataset",
+                    "x-i18n-title": { "fr": "Regrouper les jeux sous le jeu de métadonnées" },
+                    "description": "The other datasets become fragments of the metadata dataset: they no longer appear in the datasets list, are presented on its page, take its permissions and are deleted with it. Publish the metadata dataset on your portals: the fragments follow it and cannot be published on their own. No effect when Metadata is not among the datasets to produce.",
+                    "x-i18n-description": { "fr": "Les autres jeux deviennent des fragments du jeu de métadonnées : ils n'apparaissent plus dans la liste des jeux de données, sont présentés sur sa page, reprennent ses permissions et sont supprimés avec lui. Publiez le jeu de métadonnées sur vos portails : les fragments le suivent et ne peuvent pas être publiés seuls. Sans effet si Métadonnées ne fait pas partie des jeux à produire." }
                   }
                 }
               },
@@ -229,7 +237,7 @@
                           "required": ["id"],
                           "layout": {
                             "getItems": {
-                              "url": "${context.dataFairUrl}/api/v1/datasets?select=id,title&size=50&${context.ownerFilter}&raw=true",
+                              "url": "${context.dataFairUrl}/api/v1/datasets?select=id,title&size=50&${context.ownerFilter}&partOf=false,true&raw=true",
                               "qSearchParam": "q",
                               "itemsResults": "data.results",
                               "itemTitle": "item.title",
@@ -243,6 +251,13 @@
                         }
                       }
                     }
+                  },
+                  "groupDatasets": {
+                    "type": "boolean",
+                    "title": "Group the datasets under the metadata dataset",
+                    "x-i18n-title": { "fr": "Regrouper les jeux sous le jeu de métadonnées" },
+                    "description": "Checked, the next run attaches to the metadata dataset the datasets not grouped yet. No effect when the Metadata line has no dataset.",
+                    "x-i18n-description": { "fr": "Cochée, la prochaine exécution rattache au jeu de métadonnées les jeux pas encore regroupés. Sans effet si la ligne Métadonnées n'a pas de jeu de données." }
                   }
                 }
               }

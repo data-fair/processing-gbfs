@@ -19,8 +19,23 @@ ils reflètent l'état courant du service, jamais son historique. Les flux annon
 fraîcheur avec un `ttl`, souvent de 300 secondes ; planifier le traitement toutes les 5 à
 15 minutes est un rythme raisonnable.
 
-Les jeux produits sont reliés entre eux par `relatedDatasets`, et ces liens sont
-rafraîchis à chaque exécution.
+Avec l'option « Regrouper les jeux sous le jeu de métadonnées » (`groupDatasets`, cochée
+par défaut à la création), les jeux de données deviennent des fragments du jeu de
+métadonnées (`partOf`) : ils disparaissent de la liste des jeux, sont présentés sur sa
+page, reprennent ses permissions et sont supprimés avec lui. C'est le jeu de métadonnées
+qu'on publie sur les portails, un fragment ne peut pas l'être seul. Sans le jeu de
+métadonnées, les jeux restent autonomes.
+
+L'option peut être cochée après coup : sur une configuration en mise à jour, l'exécution
+suivante rattache au jeu de métadonnées les jeux pas encore regroupés. La décocher ne
+détache rien. Data-fair refuse de rattacher un jeu publié sur un portail ou un catalogue :
+l'exécution le signale par un avertissement et met quand même ses données à jour. Une
+configuration enregistrée avant l'option n'en porte aucune valeur et sa famille reste
+telle quelle.
+
+Les jeux qui ne sont pas regroupés sont reliés entre eux par `relatedDatasets`, et ces
+liens sont rafraîchis à chaque exécution. Entre membres d'un même groupe, ces liens sont
+retirés : la page du jeu de métadonnées liste déjà ses fragments.
 
 ## Versions supportées
 

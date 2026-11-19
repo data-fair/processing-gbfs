@@ -24,6 +24,7 @@ import {
   uploadAttachments,
   type DatasetRef
 } from './upload.ts'
+import { attachToParent, partOfParent } from './fragments.ts'
 
 let shouldBeStopped = false
 
@@ -195,19 +196,30 @@ export const run = async (context: ProcessingContext<ProcessingConfig>) => {
 
   const schemas = buildSchemas()
   const refs: DatasetRef[] = []
+  // the metadata dataset and the datasets attached to it as fragments
+  const grouped = new Set<string>()
 
   if (create) {
     await log.step('Creating the datasets')
     const base = baseTitle(config.datasetTitle, documents, language)
     await log.info(`Base title of the datasets: ${base}`)
+    // system comes first in RESOURCE_KEYS: the parent exists before its fragments
+    const group = config.groupDatasets === true && wanted.includes('system')
+    let systemId: string | undefined
     for (const key of wanted) {
       throwIfStopped()
       const title = datasetTitle(base, key)
       if (key === 'system') {
         const description = buildSystemDescription(documents, service.version, language)
-        refs.push(await createMetadataDataset(axios, title, description, processingId, log))
+        const ref = await createMetadataDataset(axios, title, description, processingId, log)
+        systemId = ref.id
+        if (group) grouped.add(ref.id)
+        refs.push(ref)
       } else {
-        refs.push(await createDataDataset(axios, key, title, schemas[key], config.url, processingId, log))
+        const partOf = group && systemId ? partOfParent(systemId) : undefined
+        const ref = await createDataDataset(axios, key, title, schemas[key], config.url, processingId, log, partOf)
+        if (partOf) grouped.add(ref.id)
+        refs.push(ref)
       }
     }
     // recorded before anything else can fail: without this the next run would create
@@ -215,10 +227,20 @@ export const run = async (context: ProcessingContext<ProcessingConfig>) => {
     await patchConfig({ datasetMode: 'update', datasets: datasetsFromRefs(refs) } as any)
   } else {
     await log.step('Checking the datasets')
+    const systemRef = configuredRefs.find(ref => ref.key === 'system')
+    // unchecked, or saved before the checkbox existed: the family is left as it is
+    const grouping = !!systemRef && config.groupDatasets === true
+    // only links between two members of the group are dropped: the parent alone changes nothing
+    if (systemRef) grouped.add(systemRef.id)
     for (const ref of configuredRefs) {
       throwIfStopped()
       const live = await assertDatasetExists(axios, ref)
       const resolved: DatasetRef = { ...ref, title: live.title || ref.title }
+      if (ref.key !== 'system' && systemRef) {
+        let isFragment = live.partOf?.type === 'dataset' && live.partOf.id === systemRef.id
+        if (grouping && !isFragment) isFragment = await attachToParent(axios, live, systemRef.id, log)
+        if (isFragment) grouped.add(ref.id)
+      }
       if (ref.key !== 'system' && produced.has(ref.key)) {
         await refreshSchema(axios, resolved, schemas[ref.key], live, log)
       }
@@ -244,7 +266,7 @@ export const run = async (context: ProcessingContext<ProcessingConfig>) => {
   throwIfStopped()
 
   await log.step('Related datasets')
-  await syncRelatedDatasets(axios, refs, log)
+  await syncRelatedDatasets(axios, refs, log, grouped)
 
   // no cleanup here: the worker creates tmpDir per run and removes it in a finally
   await log.info('Processing done')

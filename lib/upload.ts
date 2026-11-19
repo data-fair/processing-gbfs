@@ -4,6 +4,7 @@ import path from 'node:path'
 import util from 'node:util'
 import fs from 'fs-extra'
 import FormData from 'form-data'
+import type { PartOf } from './fragments.ts'
 import { REFRESHABLE_PROPS, RESOURCE_LOG_NAMES, RESOURCE_TITLES, type DataResourceKey, type ResourceKey, type SchemaProperty } from './schemas.ts'
 
 export interface DatasetRef {
@@ -76,14 +77,16 @@ export const createDataDataset = async (
   schema: SchemaProperty[],
   origin: string,
   processingId: string,
-  log: LogFunctions
+  log: LogFunctions,
+  partOf?: PartOf
 ): Promise<DatasetRef> => {
   const dataset = (await dfRetry(() => axios.post('api/v1/datasets', {
     title,
     isRest: true,
     schema,
     origin,
-    extras: { processingId }
+    extras: { processingId },
+    ...(partOf ? { partOf } : {})
   }), log)).data
   await log.info(`Dataset created: ${dataset.title} (${dataset.id})`)
   return { key, id: dataset.id, title: dataset.title }
@@ -267,12 +270,19 @@ export const uploadAttachments = async (axios: AxiosInstance, ref: DatasetRef, f
  * The title stored in a link is a snapshot: it does not follow a rename, a move to the
  * trash or a deletion, and data-fair says nothing. Rewriting the family links on every
  * run keeps them honest. Links the user added towards other datasets are preserved.
+ *
+ * `grouped`: ids of the metadata dataset and of its fragments. The parent's page
+ * already lists its fragments and a fragment's page leads back to it, so links between
+ * two members of the group would only repeat that: they are dropped. A member left out
+ * of the group (its attachment was refused) keeps its links, and the group links to it.
  */
-export const syncRelatedDatasets = async (axios: AxiosInstance, refs: DatasetRef[], log: LogFunctions) => {
+export const syncRelatedDatasets = async (axios: AxiosInstance, refs: DatasetRef[], log: LogFunctions, grouped: Set<string> = new Set()) => {
   if (refs.length < 2) return
   const familyIds = new Set(refs.map(ref => ref.id))
   for (const ref of refs) {
-    const siblings = refs.filter(other => other.id !== ref.id).map(other => ({ id: other.id, title: other.title }))
+    const siblings = refs
+      .filter(other => other.id !== ref.id && !(grouped.has(ref.id) && grouped.has(other.id)))
+      .map(other => ({ id: other.id, title: other.title }))
     try {
       const dataset = (await axios.get(`api/v1/datasets/${ref.id}`)).data
       const foreign = (dataset.relatedDatasets ?? []).filter((related: any) => !familyIds.has(related.id))
